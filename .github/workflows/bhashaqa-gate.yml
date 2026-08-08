@@ -1,0 +1,80 @@
+name: BhashaQA Voice Agent Gate
+
+on:
+  pull_request:
+    paths:
+      - 'prompts/**'
+      - 'agent/**'
+      - 'src/prompts/**'
+  workflow_dispatch:
+    inputs:
+      audit_name:
+        description: 'Name for this audit run'
+        required: false
+        default: 'CI Gate Run'
+      suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'ecommerce-hindi'
+
+jobs:
+  bhashaqa-test:
+    name: Run BhashaQA Regression Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run BhashaQA audit
+        env:
+          BHASHAQA_URL: ${{ secrets.BHASHAQA_URL }}
+          BHASHAQA_API_KEY: ${{ secrets.BHASHAQA_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          SUITE="${{ github.event.inputs.suite || 'ecommerce-hindi' }}"
+          AUDIT_NAME="${{ github.event.inputs.audit_name || format('CI Gate — PR #{0}', github.event.pull_request.number) }}"
+
+          # Create audit
+          AUDIT_RESPONSE=$(curl -s -X POST "${BHASHAQA_URL}/api/audits" \
+            -H "Content-Type: application/json" \
+            -d "{\"name\": \"${AUDIT_NAME}\"}")
+
+          AUDIT_ID=$(echo $AUDIT_RESPONSE | jq -r '.id')
+          echo "Created audit: $AUDIT_ID"
+
+          # Process audit
+          PROCESS_RESPONSE=$(curl -s -X POST "${BHASHAQA_URL}/api/process" \
+            -H "Content-Type: application/json" \
+            -d "{\"auditId\": \"${AUDIT_ID}\"}")
+
+          FAILED=$(echo $PROCESS_RESPONSE | jq -r '.failedCount // 0')
+          TOTAL=$(echo $PROCESS_RESPONSE | jq -r '.totalCalls // 0')
+
+          echo "Results: $FAILED failures out of $TOTAL calls"
+          echo "::set-output name=failures::$FAILED"
+          echo "::set-output name=total::$TOTAL"
+
+          if [ "$FAILED" -gt "0" ]; then
+            echo "::error::BhashaQA detected $FAILED failures. Check ${BHASHAQA_URL}/audits/${AUDIT_ID}"
+            exit 1
+          fi
+
+      - name: Comment on PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## BhashaQA Voice Agent Gate — FAILED\n\nPrompt changes introduced voice agent failures.\n\nCheck the [audit report](${process.env.BHASHAQA_URL}/audits/) for details.`
+            });

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut } from "lucide-react";
+import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut, GitCompare, ClipboardCheck, Package, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -14,6 +14,10 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/audits", label: "Audits", icon: FileSearch },
   { href: "/audits/new", label: "New Audit", icon: Plus },
+  { href: "/regression", label: "Regression", icon: GitCompare },
+  { href: "/review", label: "Review Queue", icon: ClipboardCheck },
+  { href: "/packs", label: "Industry Packs", icon: Package },
+  { href: "/demo", label: "Live Demo", icon: Zap },
 ];
 
 function NavContent({ pathname }: { pathname: string }) {

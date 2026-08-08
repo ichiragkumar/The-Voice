@@ -9,6 +9,7 @@ import { LayerComparison } from "@/components/layer-comparison";
 import { EntityTable } from "@/components/entity-table";
 import { FailureCard } from "@/components/failure-card";
 import { AlertTriangle, CheckCircle, Code } from "lucide-react";
+import { SpeakButton } from "@/components/speak-button";
 
 export default async function CallDetailPage({
   params,
@@ -71,8 +72,13 @@ export default async function CallDetailPage({
 
       {/* Transcript */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Transcript</CardTitle>
+          <SpeakButton
+            text={call.transcript.replace(/Agent:|Customer:/g, "").slice(0, 500)}
+            voice="Ananya"
+            label="Listen to call"
+          />
         </CardHeader>
         <CardContent>
           <pre className="whitespace-pre-wrap text-sm text-muted-foreground font-mono leading-relaxed">

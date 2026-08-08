@@ -1,0 +1,96 @@
+"use client";
+
+import { motion, useInView } from "motion/react";
+import { useRef } from "react";
+import {
+  Languages,
+  GitCompare,
+  Webhook,
+  ClipboardCheck,
+  Shield,
+  Package,
+} from "lucide-react";
+
+const features = [
+  {
+    icon: Languages,
+    title: "Hindi & Hinglish native",
+    desc: 'Resolves "saade chaar", "parson", "uske agle din", spoken order IDs, and code-switching — not just English with translation.',
+  },
+  {
+    icon: Shield,
+    title: "Backend truth verification",
+    desc: "Checks what API was called, what arguments were sent, whether it succeeded, and what the database actually stored.",
+  },
+  {
+    icon: GitCompare,
+    title: "Regression comparison",
+    desc: "Compare audit version A vs B side-by-side. See which failures are new, which are fixed, and how root causes shifted.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Human review workflow",
+    desc: "Flag low-confidence failures for native-speaker review. Confirmed cases become your proprietary evaluation dataset.",
+  },
+  {
+    icon: Webhook,
+    title: "Production ingestion",
+    desc: "Ingest live production calls via API or webhook. Monitor real conversations alongside synthetic test suites.",
+  },
+  {
+    icon: Package,
+    title: "Ready-made industry packs",
+    desc: "Pre-built test scenarios for e-commerce, appointments, collections, insurance, and address changes — plug and play.",
+  },
+];
+
+export function LandingFeatures() {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
+  return (
+    <section
+      id="features"
+      ref={ref}
+      className="py-24 px-6 bg-white/[0.02] border-y border-white/5"
+    >
+      <div className="max-w-5xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={inView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl sm:text-4xl font-bold">
+            Built for Indian voice agents
+          </h2>
+          <p className="text-white/40 mt-4 max-w-xl mx-auto">
+            Generic platforms tell you if the conversation looked correct.
+            BhashaQA certifies that the customer&rsquo;s exact request became
+            the correct transaction.
+          </p>
+        </motion.div>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, i) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 30 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
+              className="group rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:border-emerald-400/20 hover:bg-white/[0.04] transition-all"
+            >
+              <div className="h-10 w-10 rounded-lg bg-emerald-400/10 flex items-center justify-center mb-4 group-hover:bg-emerald-400/20 transition-colors">
+                <feature.icon className="h-5 w-5 text-emerald-400" />
+              </div>
+              <h3 className="font-semibold mb-2">{feature.title}</h3>
+              <p className="text-sm text-white/40 leading-relaxed">
+                {feature.desc}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}

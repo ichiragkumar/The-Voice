@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
 import { loginAction } from "@/actions/auth-actions";
+import { motion } from "motion/react";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
@@ -35,20 +36,32 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-sm space-y-8">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center">
-            <div className="h-12 w-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-              <Shield className="h-6 w-6 text-emerald-500" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.03)_0%,transparent_50%)] dark:block hidden" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative w-full max-w-sm space-y-8"
+      >
+        <div className="text-center space-y-3">
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex justify-center"
+          >
+            <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+              <Shield className="h-7 w-7 text-emerald-500" />
             </div>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">BhashaQA</h1>
+          </motion.div>
+          <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
           <p className="text-sm text-muted-foreground">
-            Voice Agent Truth Layer
+            Sign in to BhashaQA
           </p>
         </div>
 
-        <Card>
+        <Card className="shadow-xl shadow-black/5">
           <CardContent className="pt-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -56,9 +69,10 @@ export default function LoginPage() {
                 <Input
                   id="username"
                   name="username"
-                  placeholder="Enter username"
+                  defaultValue="user1234"
                   autoComplete="username"
                   required
+                  className="h-10"
                 />
               </div>
               <div className="space-y-2">
@@ -68,14 +82,15 @@ export default function LoginPage() {
                     id="password"
                     name="password"
                     type={showPass ? "text" : "password"}
-                    placeholder="Enter password"
+                    defaultValue="password"
                     autoComplete="current-password"
                     required
+                    className="h-10 pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPass ? (
                       <EyeOff className="h-4 w-4" />
@@ -87,13 +102,19 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <p className="text-sm text-red-500">{error}</p>
+                <motion.p
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-red-500"
+                >
+                  {error}
+                </motion.p>
               )}
 
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
+                className="w-full h-10 bg-emerald-600 hover:bg-emerald-500 transition-all"
               >
                 {loading ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -106,9 +127,9 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Verifies business transactions by Indian-language voice agents
+          Voice Agent Truth Layer
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }

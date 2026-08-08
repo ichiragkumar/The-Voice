@@ -708,10 +708,549 @@ async function main() {
     });
   }
 
+  // ── Audit 4: E-commerce Cancellation & Refund Pack ──
+  const audit4 = await prisma.audit.create({
+    data: {
+      name: "ShopEasy - Cancellation & Refund Audit",
+      agentPrompt:
+        "You are a customer support agent for ShopEasy e-commerce. Help customers cancel orders, process refunds, reschedule deliveries, and change addresses. Refunds go to original payment method unless customer requests otherwise. Cancellation is only allowed before shipping.",
+      status: "completed",
+      totalCalls: 8,
+      failedCalls: 3,
+      failureRate: 0.375,
+    },
+  });
+
+  // E-com Call 1: FAIL — reasoning_error (wrong refund amount)
+  const ecomCall1 = await prisma.call.create({
+    data: {
+      auditId: audit4.id,
+      transcript:
+        "Agent: ShopEasy customer support, namaste.\nCustomer: Mera order cancel karna hai. Order number one four double nine hai.\nAgent: Order #1499 mil gaya. Isme do items hain — ek shirt ₹899 aur ek belt ₹450. Kaunsa cancel karna hai?\nCustomer: Sirf shirt cancel karo, belt rehne do.\nAgent: Theek hai, shirt cancel kar diya. ₹1349 refund ho jayega 5-7 din mein.\nCustomer: Theek hai.",
+      language: "hinglish",
+      status: "failed",
+      summary: "Partial cancellation — agent refunded total instead of shirt only",
+    },
+  });
+
+  const ecomE1_1 = await prisma.entity.create({
+    data: {
+      callId: ecomCall1.id,
+      type: "name",
+      rawValue: "one four double nine",
+      normalizedValue: "1499",
+      confidence: 0.85,
+      sourceLayer: "asr_transcript",
+      timestampStart: 5.0,
+      timestampEnd: 6.5,
+    },
+  });
+
+  const ecomE1_2 = await prisma.entity.create({
+    data: {
+      callId: ecomCall1.id,
+      type: "amount",
+      rawValue: "₹899 (shirt only)",
+      normalizedValue: "899",
+      confidence: 0.9,
+      sourceLayer: "agent_interpretation",
+      timestampStart: 10.0,
+      timestampEnd: 11.0,
+    },
+  });
+
+  const ecomE1_3 = await prisma.entity.create({
+    data: {
+      callId: ecomCall1.id,
+      type: "action",
+      rawValue: "sirf shirt cancel karo",
+      normalizedValue: "partial_cancel",
+      confidence: 0.9,
+      sourceLayer: "agent_interpretation",
+      timestampStart: 12.0,
+      timestampEnd: 13.5,
+    },
+  });
+
+  const ecomTc1 = await prisma.toolCall.create({
+    data: {
+      callId: ecomCall1.id,
+      functionName: "cancel_order_item",
+      arguments: JSON.stringify({
+        order_id: "1499",
+        item: "shirt",
+        refund_amount: 1349,
+        refund_method: "original_payment",
+      }),
+      response: JSON.stringify({ success: true, refund_id: "RF-2001" }),
+    },
+  });
+
+  await prisma.comparison.createMany({
+    data: [
+      {
+        callId: ecomCall1.id,
+        entityId: ecomE1_2.id,
+        toolCallId: ecomTc1.id,
+        expectedValue: "899",
+        actualValue: "1349",
+        match: false,
+        rootCause: "reasoning_error",
+        evidence:
+          "Customer requested partial cancellation of shirt only (₹899). Agent correctly identified the item but passed the total order amount (₹1349 = ₹899 + ₹450) as refund instead of the shirt price alone.",
+        severity: "critical",
+      },
+      {
+        callId: ecomCall1.id,
+        entityId: ecomE1_1.id,
+        toolCallId: ecomTc1.id,
+        expectedValue: "1499",
+        actualValue: "1499",
+        match: true,
+        severity: "info",
+      },
+    ],
+  });
+
+  // E-com Call 2: FAIL — tool_argument_error (wrong refund method)
+  const ecomCall2 = await prisma.call.create({
+    data: {
+      auditId: audit4.id,
+      transcript:
+        "Agent: ShopEasy support.\nCustomer: Mera refund UPI par chahiye, account mein nahi. Order 2310 ka.\nAgent: Theek hai, ₹1200 refund UPI par process kar diya.\nCustomer: PhonePe par aayega na?\nAgent: Haan ji, PhonePe par aa jayega.",
+      language: "hinglish",
+      status: "failed",
+      summary: "Customer requested UPI refund but system processed to bank account",
+    },
+  });
+
+  const ecomE2_1 = await prisma.entity.create({
+    data: {
+      callId: ecomCall2.id,
+      type: "action",
+      rawValue: "refund UPI par chahiye, account mein nahi",
+      normalizedValue: "refund_upi",
+      confidence: 0.95,
+      sourceLayer: "asr_transcript",
+      timestampStart: 4.0,
+      timestampEnd: 6.5,
+    },
+  });
+
+  const ecomE2_2 = await prisma.entity.create({
+    data: {
+      callId: ecomCall2.id,
+      type: "amount",
+      rawValue: "₹1200",
+      normalizedValue: "1200",
+      confidence: 0.98,
+      sourceLayer: "asr_transcript",
+      timestampStart: 8.0,
+      timestampEnd: 8.5,
+    },
+  });
+
+  const ecomTc2 = await prisma.toolCall.create({
+    data: {
+      callId: ecomCall2.id,
+      functionName: "process_refund",
+      arguments: JSON.stringify({
+        order_id: "2310",
+        amount: 1200,
+        method: "bank_account",
+      }),
+      response: JSON.stringify({ success: true, refund_id: "RF-2002" }),
+    },
+  });
+
+  await prisma.comparison.createMany({
+    data: [
+      {
+        callId: ecomCall2.id,
+        entityId: ecomE2_1.id,
+        toolCallId: ecomTc2.id,
+        expectedValue: "upi",
+        actualValue: "bank_account",
+        match: false,
+        rootCause: "tool_argument_error",
+        evidence:
+          "Customer explicitly said 'UPI par chahiye, account mein nahi' (want it on UPI, not bank account). Agent verbally confirmed UPI/PhonePe but the tool call passed 'bank_account' as the refund method.",
+        severity: "critical",
+      },
+      {
+        callId: ecomCall2.id,
+        entityId: ecomE2_2.id,
+        toolCallId: ecomTc2.id,
+        expectedValue: "1200",
+        actualValue: "1200",
+        match: true,
+        severity: "info",
+      },
+    ],
+  });
+
+  // E-com Call 3: FAIL — false_confirmation (delivery date)
+  const ecomCall3 = await prisma.call.create({
+    data: {
+      auditId: audit4.id,
+      transcript:
+        "Agent: ShopEasy delivery support.\nCustomer: Kal nahi, parson deliver karna mera order. Order ID 3847.\nAgent: Aapka delivery parson ke liye reschedule kar diya hai.\nCustomer: Pakka parson aayega?\nAgent: Haan ji, pakka parson.",
+      language: "hinglish",
+      status: "failed",
+      summary: "Agent confirmed day-after-tomorrow but scheduled for tomorrow",
+    },
+  });
+
+  const ecomE3_1 = await prisma.entity.create({
+    data: {
+      callId: ecomCall3.id,
+      type: "date",
+      rawValue: "parson",
+      normalizedValue: "2026-08-10",
+      confidence: 0.88,
+      sourceLayer: "asr_transcript",
+      timestampStart: 4.5,
+      timestampEnd: 5.0,
+    },
+  });
+
+  const ecomTc3 = await prisma.toolCall.create({
+    data: {
+      callId: ecomCall3.id,
+      functionName: "reschedule_delivery",
+      arguments: JSON.stringify({
+        order_id: "3847",
+        new_date: "2026-08-09",
+      }),
+      response: JSON.stringify({ success: true }),
+    },
+  });
+
+  await prisma.comparison.create({
+    data: {
+      callId: ecomCall3.id,
+      entityId: ecomE3_1.id,
+      toolCallId: ecomTc3.id,
+      expectedValue: "2026-08-10",
+      actualValue: "2026-08-09",
+      match: false,
+      rootCause: "false_confirmation",
+      evidence:
+        "Customer said 'kal nahi, parson' (not tomorrow, day after). Agent verbally confirmed 'parson' but the tool call scheduled for tomorrow (Aug 9) instead of day-after-tomorrow (Aug 10).",
+      severity: "critical",
+    },
+  });
+
+  // E-com Calls 4-8: PASS
+  const ecomPassingCalls = [
+    {
+      transcript: "Agent: ShopEasy support.\nCustomer: Cancel kar do order 5521. Abhi tak ship nahi hua.\nAgent: Order 5521 cancel kar diya. ₹2,499 refund 5-7 din mein.\nCustomer: OK thanks.",
+      language: "hinglish",
+      summary: "Full order cancellation — correct",
+    },
+    {
+      transcript: "Agent: ShopEasy.\nCustomer: I want to return the headphones from order 6623. They're defective.\nAgent: Return initiated for headphones from order 6623. Pickup scheduled for tomorrow.\nCustomer: Thank you.",
+      language: "english",
+      summary: "Return initiated for defective item — correct",
+    },
+    {
+      transcript: "Agent: ShopEasy delivery help.\nCustomer: Address change karna hai order 7712 ka. Naya address hai 15, Koramangala 4th Block, Bangalore.\nAgent: Address updated to 15, Koramangala 4th Block, Bangalore.\nCustomer: Sahi hai, dhanyavaad.",
+      language: "hinglish",
+      summary: "Delivery address change — correct",
+    },
+    {
+      transcript: "Agent: ShopEasy support, namaste.\nCustomer: Mujhe COD se prepaid mein change karna hai. Order 8834.\nAgent: Payment method COD se prepaid mein change kar diya. UPI link bhej rahi hoon.\nCustomer: Theek hai.",
+      language: "hinglish",
+      summary: "COD to prepaid conversion — correct",
+    },
+    {
+      transcript: "Agent: Hello, ShopEasy.\nCustomer: Where is my order 9901? It was supposed to arrive yesterday.\nAgent: Order 9901 is out for delivery. Expected by 6 PM today.\nCustomer: Alright.",
+      language: "english",
+      summary: "Order tracking inquiry — correct",
+    },
+  ];
+
+  for (const pc of ecomPassingCalls) {
+    await prisma.call.create({
+      data: {
+        auditId: audit4.id,
+        transcript: pc.transcript,
+        language: pc.language || "hinglish",
+        status: "passed",
+        summary: pc.summary,
+      },
+    });
+  }
+
+  // ── Audit 5: Collections Promise-to-Pay Pack ──
+  const audit5 = await prisma.audit.create({
+    data: {
+      name: "FinServ Collections - PTP Audit",
+      agentPrompt:
+        "You are a collections agent for FinServ lending. Remind customers about overdue EMIs, capture promise-to-pay dates and amounts, and log payment commitments. Be polite but firm.",
+      status: "completed",
+      totalCalls: 5,
+      failedCalls: 2,
+      failureRate: 0.4,
+    },
+  });
+
+  // Collections Call 1: FAIL — asr_error (wrong amount)
+  const colCall1 = await prisma.call.create({
+    data: {
+      auditId: audit5.id,
+      transcript:
+        "Agent: FinServ collections se bol raha hoon. Aapka ₹15,000 ka EMI pending hai.\nCustomer: Haan pata hai. Teen hazaar abhi de dunga, baaki parson.\nAgent: Theek hai, ₹13,000 aaj aur baaki parson.\nCustomer: Nahi nahi, teen hazaar! T-E-E-N hazaar. 3000.\nAgent: Oh sorry, ₹3,000 aaj. Noted.",
+      language: "hinglish",
+      status: "failed",
+      summary: "ASR confused 'teen hazaar' (3000) with 'tera hazaar' (13000)",
+    },
+  });
+
+  const colE1_1 = await prisma.entity.create({
+    data: {
+      callId: colCall1.id,
+      type: "amount",
+      rawValue: "teen hazaar",
+      normalizedValue: "3000",
+      confidence: 0.7,
+      sourceLayer: "asr_transcript",
+      timestampStart: 8.0,
+      timestampEnd: 9.0,
+    },
+  });
+
+  const colE1_2 = await prisma.entity.create({
+    data: {
+      callId: colCall1.id,
+      type: "date",
+      rawValue: "parson",
+      normalizedValue: "2026-08-10",
+      confidence: 0.85,
+      sourceLayer: "asr_transcript",
+      timestampStart: 10.0,
+      timestampEnd: 10.5,
+    },
+  });
+
+  const colTc1 = await prisma.toolCall.create({
+    data: {
+      callId: colCall1.id,
+      functionName: "log_promise_to_pay",
+      arguments: JSON.stringify({
+        customer_id: "CUST-5501",
+        amount_today: 13000,
+        amount_later: 2000,
+        later_date: "2026-08-10",
+      }),
+      response: JSON.stringify({ success: true, ptp_id: "PTP-301" }),
+    },
+  });
+
+  await prisma.comparison.create({
+    data: {
+      callId: colCall1.id,
+      entityId: colE1_1.id,
+      toolCallId: colTc1.id,
+      expectedValue: "3000",
+      actualValue: "13000",
+      match: false,
+      rootCause: "asr_error",
+      evidence:
+        "Customer said 'teen hazaar' (3,000) but ASR initially heard 'tera hazaar' (13,000). In Hindi, 'teen' (3) and 'tera' (13) are phonetically close. Customer had to spell it out before correction.",
+      severity: "critical",
+    },
+  });
+
+  // Collections Call 2: FAIL — reasoning_error (wrong PTP date)
+  const colCall2 = await prisma.call.create({
+    data: {
+      auditId: audit5.id,
+      transcript:
+        "Agent: FinServ collections. Aapka ₹8,500 EMI overdue hai.\nCustomer: Salary aane do, uske agle din de dunga. Salary 15 ko aati hai.\nAgent: Theek hai, 15 August ko payment note kar liya.\nCustomer: Nahi, 15 ko salary aayegi, uske agle din — 16 ko dunga.",
+      language: "hinglish",
+      status: "failed",
+      summary: "PTP date should be 16th (day after salary) not 15th",
+    },
+  });
+
+  const colE2_1 = await prisma.entity.create({
+    data: {
+      callId: colCall2.id,
+      type: "date",
+      rawValue: "uske agle din (after 15th salary)",
+      normalizedValue: "2026-08-16",
+      confidence: 0.75,
+      sourceLayer: "asr_transcript",
+      timestampStart: 8.0,
+      timestampEnd: 10.0,
+    },
+  });
+
+  const colTc2 = await prisma.toolCall.create({
+    data: {
+      callId: colCall2.id,
+      functionName: "log_promise_to_pay",
+      arguments: JSON.stringify({
+        customer_id: "CUST-5502",
+        amount: 8500,
+        promise_date: "2026-08-15",
+      }),
+      response: JSON.stringify({ success: true, ptp_id: "PTP-302" }),
+    },
+  });
+
+  await prisma.comparison.create({
+    data: {
+      callId: colCall2.id,
+      entityId: colE2_1.id,
+      toolCallId: colTc2.id,
+      expectedValue: "2026-08-16",
+      actualValue: "2026-08-15",
+      match: false,
+      rootCause: "reasoning_error",
+      evidence:
+        "Customer said 'salary 15 ko aati hai, uske agle din de dunga' — meaning payment on 16th (day after salary on 15th). Agent logged PTP for 15th, the salary date, not the promised payment date.",
+      severity: "critical",
+    },
+  });
+
+  // Collections Calls 3-5: PASS
+  const colPassingCalls = [
+    {
+      transcript: "Agent: FinServ collections.\nCustomer: Haan, ₹5,000 kal de dunga pakka.\nAgent: ₹5,000 kal, 9 August. Note kar liya.\nCustomer: Haan.",
+      language: "hinglish",
+      summary: "PTP ₹5,000 tomorrow — correct",
+    },
+    {
+      transcript: "Agent: FinServ.\nCustomer: I already paid yesterday via NEFT. Reference number NEFT2026080712345.\nAgent: Let me check. Yes, ₹12,000 received yesterday. Your account is updated.\nCustomer: Thank you.",
+      language: "english",
+      summary: "Payment confirmation — correct",
+    },
+    {
+      transcript: "Agent: FinServ collections se.\nCustomer: Monday ko full payment kar dunga. Poora ₹22,000.\nAgent: ₹22,000 Monday 11 August. Noted.\nCustomer: Haan ji.",
+      language: "hinglish",
+      summary: "PTP full payment Monday — correct",
+    },
+  ];
+
+  for (const pc of colPassingCalls) {
+    await prisma.call.create({
+      data: {
+        auditId: audit5.id,
+        transcript: pc.transcript,
+        language: pc.language || "hinglish",
+        status: "passed",
+        summary: pc.summary,
+      },
+    });
+  }
+
+  // ── Audit 6: Insurance Servicing Pack ──
+  const audit6 = await prisma.audit.create({
+    data: {
+      name: "SecureLife Insurance - Policy Servicing",
+      agentPrompt:
+        "You are a policy servicing agent for SecureLife Insurance. Help customers with premium payments, policy details, nominee changes, and claim status. Always verify policy number before making changes.",
+      status: "completed",
+      totalCalls: 4,
+      failedCalls: 1,
+      failureRate: 0.25,
+    },
+  });
+
+  // Insurance Call 1: FAIL — integration_error (nominee not updated)
+  const insCall1 = await prisma.call.create({
+    data: {
+      auditId: audit6.id,
+      transcript:
+        "Agent: SecureLife Insurance, namaste.\nCustomer: Meri policy mein nominee change karna hai. Policy number SL-2024-78432.\nAgent: Policy mil gayi. Current nominee Sunita Devi hai. Naya nominee kaun hoga?\nCustomer: Mera beta Rahul Kumar. Date of birth 15 March 1998.\nAgent: Rahul Kumar, DOB 15 March 1998 — nominee update ho gaya.\nCustomer: Dhanyavaad.",
+      language: "hinglish",
+      status: "failed",
+      summary: "Agent confirmed nominee change but backend still shows old nominee",
+    },
+  });
+
+  const insE1_1 = await prisma.entity.create({
+    data: {
+      callId: insCall1.id,
+      type: "name",
+      rawValue: "Rahul Kumar",
+      normalizedValue: "Rahul Kumar",
+      confidence: 0.95,
+      sourceLayer: "asr_transcript",
+      timestampStart: 12.0,
+      timestampEnd: 13.0,
+    },
+  });
+
+  const insTc1 = await prisma.toolCall.create({
+    data: {
+      callId: insCall1.id,
+      functionName: "update_nominee",
+      arguments: JSON.stringify({
+        policy_id: "SL-2024-78432",
+        nominee_name: "Rahul Kumar",
+        nominee_dob: "1998-03-15",
+        relationship: "son",
+      }),
+      response: JSON.stringify({ success: false, error: "POLICY_LOCKED_FOR_REVIEW" }),
+    },
+  });
+
+  await prisma.comparison.create({
+    data: {
+      callId: insCall1.id,
+      entityId: insE1_1.id,
+      toolCallId: insTc1.id,
+      expectedValue: "Rahul Kumar",
+      actualValue: "Sunita Devi (unchanged)",
+      match: false,
+      rootCause: "integration_error",
+      evidence:
+        "Agent called update_nominee with correct arguments, but the API returned POLICY_LOCKED_FOR_REVIEW error. Agent ignored the error response and told the customer the update was done. Backend still shows Sunita Devi as nominee.",
+      severity: "critical",
+    },
+  });
+
+  // Insurance Calls 2-4: PASS
+  const insPassingCalls = [
+    {
+      transcript: "Agent: SecureLife.\nCustomer: Meri policy SL-2024-55210 ka premium kab due hai?\nAgent: Aapka next premium ₹12,500 hai, due date 1 September 2026.\nCustomer: OK, time par kar dunga.",
+      language: "hinglish",
+      summary: "Premium due date inquiry — correct",
+    },
+    {
+      transcript: "Agent: SecureLife Insurance.\nCustomer: Claim status chahiye. Claim number CL-2026-1234.\nAgent: Claim CL-2026-1234 is under review. Expected settlement by August 20th.\nCustomer: Thank you.",
+      language: "english",
+      summary: "Claim status inquiry — correct",
+    },
+    {
+      transcript: "Agent: SecureLife, namaste.\nCustomer: Policy SL-2024-90021 ka address change karna hai. Naya address 42 MG Road, Pune 411001.\nAgent: Address updated to 42 MG Road, Pune 411001.\nCustomer: Shukriya.",
+      language: "hinglish",
+      summary: "Address change on policy — correct",
+    },
+  ];
+
+  for (const pc of insPassingCalls) {
+    await prisma.call.create({
+      data: {
+        auditId: audit6.id,
+        transcript: pc.transcript,
+        language: pc.language || "hinglish",
+        status: "passed",
+        summary: pc.summary,
+      },
+    });
+  }
+
   console.log("Seed completed successfully!");
-  console.log(`  Audit 1: ${audit1.id} (10 calls, 3 failed)`);
-  console.log(`  Audit 2: ${audit2.id} (5 calls, 1 failed)`);
-  console.log(`  Audit 3: ${audit3.id} (3 calls, processing)`);
+  console.log(`  Audit 1: ${audit1.id} (10 calls, 3 failed) — Appointment`);
+  console.log(`  Audit 2: ${audit2.id} (5 calls, 1 failed) — AC Service`);
+  console.log(`  Audit 3: ${audit3.id} (3 calls, processing) — Diagnostics`);
+  console.log(`  Audit 4: ${audit4.id} (8 calls, 3 failed) — E-commerce`);
+  console.log(`  Audit 5: ${audit5.id} (5 calls, 2 failed) — Collections`);
+  console.log(`  Audit 6: ${audit6.id} (4 calls, 1 failed) — Insurance`);
 }
 
 main()

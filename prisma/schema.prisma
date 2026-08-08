@@ -71,7 +71,41 @@ model Comparison {
   rootCause     String?
   evidence      String?
   severity      String
+  reviewStatus  String    @default("pending")
+  reviewNote    String?
+  reviewedAt    DateTime?
   call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
   entity        Entity?   @relation(fields: [entityId], references: [id])
   toolCall      ToolCall? @relation(fields: [toolCallId], references: [id])
+}
+
+model TestRun {
+  id            String        @id @default(cuid())
+  auditId       String?
+  scenarioName  String
+  scenarioPack  String        @default("custom")
+  status        String        @default("pending")
+  totalChecks   Int           @default(0)
+  passedChecks  Int           @default(0)
+  failedChecks  Int           @default(0)
+  transcript    String?
+  toolCalls     String?
+  finalState    String?
+  createdAt     DateTime      @default(now())
+  audit         Audit?        @relation(fields: [auditId], references: [id], onDelete: SetNull)
+  policyChecks  PolicyCheck[]
+}
+
+model PolicyCheck {
+  id          String   @id @default(cuid())
+  testRunId   String?
+  callId      String?
+  policyPack  String
+  rule        String
+  passed      Boolean
+  evidence    String?
+  severity    String   @default("warning")
+  createdAt   DateTime @default(now())
+  testRun     TestRun? @relation(fields: [testRunId], references: [id], onDelete: Cascade)
+  call        Call?    @relation(fields: [callId], references: [id], onDelete: Cascade)
 }

@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { SpeakButton } from "@/components/speak-button";
 import {
   Table,
   TableBody,
@@ -51,8 +52,11 @@ export function EntityTable({ entities }: { entities: Entity[] }) {
                 {entity.type}
               </Badge>
             </TableCell>
-            <TableCell className="italic text-muted-foreground">
-              {entity.rawValue}
+            <TableCell>
+              <div className="flex items-center gap-2">
+                <span className="italic text-muted-foreground">{entity.rawValue}</span>
+                <SpeakButton text={entity.rawValue} size="icon" label="" />
+              </div>
             </TableCell>
             <TableCell className="font-mono text-sm">
               {entity.normalizedValue}
