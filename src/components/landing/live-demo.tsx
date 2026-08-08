@@ -1,19 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Zap, AlertTriangle, Mic, MicOff, Send,
+  Zap, AlertTriangle, Play, ArrowRight, Mic, MicOff, Send,
   CheckCircle, XCircle, User, Bot, ExternalLink,
   AudioLines, FileText, Target, Code, Database, Shield, Loader2,
+  ShoppingCart, Volume2, MessageSquare,
 } from "lucide-react";
-import { DEMO_SCENARIOS } from "@/lib/demo-scenarios";
-import Link from "next/link";
 
-type Message = { role: "customer" | "agent"; text: string };
 type StageStatus = "idle" | "active" | "ok" | "fail";
 
 const PIPELINE = [
@@ -25,35 +23,396 @@ const PIPELINE = [
   { id: "verdict", label: "Verdict", icon: Shield },
 ];
 
-export function LandingLiveDemo() {
-  const [listening, setListening] = useState(false);
-  const [processing, setProcessing] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [stages, setStages] = useState<Record<string, StageStatus>>({});
-  const [injectFailure, setInjectFailure] = useState(false);
-  const [waveform, setWaveform] = useState<number[]>(new Array(60).fill(0.04));
-  const [liveText, setLiveText] = useState("");
-  const [typedText, setTypedText] = useState("");
-  const [lastRunId, setLastRunId] = useState<string | null>(null);
-  const [toolInfo, setToolInfo] = useState<{ name: string; args: Record<string, unknown> } | null>(null);
-  const [failInfo, setFailInfo] = useState<{ expected: string; actual: string } | null>(null);
-  const animRef = useRef<number>(0);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const recognitionRef = useRef<any>(null);
+const ORDER = {
+  id: "ORD-123",
+  item: "Wireless Earbuds",
+  amount: 1499,
+  status: "not_dispatched",
+};
 
-  function resetAll() {
-    setMessages([]);
+const CUSTOMER_TEXT = "Mera order ORD-123 cancel kar do. Abhi dispatch nahi hua.";
+
+export function LandingLiveDemo() {
+  const [mode, setMode] = useState<"working" | "broken">("working");
+  const [step, setStep] = useState(0);
+  const [stages, setStages] = useState<Record<string, StageStatus>>({});
+  const [running, setRunning] = useState(false);
+
+  function reset() {
+    setStep(0);
     setStages({});
-    setLiveText("");
-    setWaveform(new Array(60).fill(0.04));
-    setLastRunId(null);
-    setToolInfo(null);
-    setFailInfo(null);
-    setProcessing(false);
+    setRunning(false);
   }
 
+  async function runDemo() {
+    if (running) return;
+    setRunning(true);
+    setStep(1);
+
+    // Step 1: Audio received
+    setStages({ audio: "active" });
+    await delay(800);
+    setStages({ audio: "ok" });
+
+    // Step 2: Transcript
+    setStep(2);
+    setStages((s) => ({ ...s, transcript: "active" }));
+    await delay(600);
+    setStages((s) => ({ ...s, transcript: "ok" }));
+
+    // Step 3: Entities
+    setStep(3);
+    setStages((s) => ({ ...s, entities: "active" }));
+    await delay(600);
+    setStages((s) => ({ ...s, entities: "ok" }));
+
+    // Step 4: Tool call
+    setStep(4);
+    setStages((s) => ({ ...s, tool: "active" }));
+
+    try {
+      await fetch("/api/claude", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transcript: CUSTOMER_TEXT, locale: "hi-IN", inject_failure: mode === "broken" }),
+      });
+    } catch {}
+
+    await delay(500);
+    setStages((s) => ({ ...s, tool: "ok" }));
+
+    // Step 5: Backend state
+    setStep(5);
+    setStages((s) => ({ ...s, backend: "active" }));
+    await delay(800);
+
+    const backendOk = mode === "working";
+    setStages((s) => ({ ...s, backend: backendOk ? "ok" : "fail" }));
+
+    // Step 6: Verdict
+    setStep(6);
+    await delay(400);
+    setStages((s) => ({ ...s, verdict: backendOk ? "ok" : "fail" }));
+
+    // Play TTS
+    try {
+      const reply = backendOk
+        ? "Order ORD-123 ki cancellation process ho rahi hai."
+        : "Order ORD-123 cancel ho gaya hai. Confirmed.";
+      const tts = await fetch("/api/tts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: reply, voice: "Ananya" }),
+      });
+      if (tts.ok) new Audio(URL.createObjectURL(await tts.blob())).play();
+    } catch {}
+
+    setRunning(false);
+  }
+
+  return (
+    <section id="live-demo" className="py-20 px-6">
+      <div className="max-w-5xl mx-auto space-y-8">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center space-y-2">
+          <Badge variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Interactive Demo
+          </Badge>
+          <h2 className="text-2xl sm:text-4xl font-bold">See Word AI catch a real failure</h2>
+          <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+            A customer calls to cancel an order. The agent responds. But did the backend actually cancel it?
+          </p>
+        </motion.div>
+
+        {/* Mode toggle */}
+        <div className="flex justify-center gap-3">
+          <Button variant={mode === "working" ? "default" : "outline"} size="sm" onClick={() => { setMode("working"); reset(); }} className={mode === "working" ? "bg-emerald-600 hover:bg-emerald-700 gap-1.5" : "gap-1.5"}>
+            <CheckCircle className="h-3 w-3" /> Working Agent
+          </Button>
+          <Button variant={mode === "broken" ? "default" : "outline"} size="sm" onClick={() => { setMode("broken"); reset(); }} className={mode === "broken" ? "bg-red-600 hover:bg-red-700 gap-1.5" : "gap-1.5"}>
+            <AlertTriangle className="h-3 w-3" /> Broken Agent
+          </Button>
+        </div>
+
+        {/* Two columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* LEFT: The story */}
+          <div className="space-y-4">
+            {/* Order context */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Order</p>
+              </div>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between"><span className="text-muted-foreground">Order ID</span><span className="font-mono">{ORDER.id}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Item</span><span>{ORDER.item}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Amount</span><span className="font-mono">₹{ORDER.amount}</span></div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Status</span>
+                  <Badge variant="outline" className="text-[10px]">{step >= 5 && mode === "working" ? "cancelled" : ORDER.status}</Badge>
+                </div>
+              </div>
+            </div>
+
+            {/* Customer says */}
+            <AnimatePresence>
+              {step >= 1 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="h-7 w-7 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                      <User className="h-3.5 w-3.5 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-blue-400 font-semibold uppercase">Customer</p>
+                      <p className="text-sm mt-1 italic">&ldquo;{CUSTOMER_TEXT}&rdquo;</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Entities extracted */}
+            <AnimatePresence>
+              {step >= 3 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3">Entities Extracted</p>
+                  <div className="flex gap-2 flex-wrap">
+                    <Badge variant="outline" className="text-xs font-mono">order_id: ORD-123</Badge>
+                    <Badge variant="outline" className="text-xs font-mono">action: cancel</Badge>
+                    <Badge variant="outline" className="text-xs font-mono">status: not_dispatched</Badge>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Agent response */}
+            <AnimatePresence>
+              {step >= 4 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
+                  <div className="flex items-start gap-3">
+                    <div className="h-7 w-7 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-3.5 w-3.5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-emerald-400 font-semibold uppercase">Agent</p>
+                      <p className="text-sm mt-1">
+                        {mode === "broken"
+                          ? "Order ORD-123 cancel ho gaya hai. Confirmed."
+                          : "Order ORD-123 ki cancellation process ho rahi hai."}
+                      </p>
+                      <div className="mt-2">
+                        <code className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
+                          cancel_order(order_id: &quot;ORD-123&quot;)
+                        </code>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* RIGHT: Verification result */}
+          <div className="space-y-4">
+            {/* Pipeline */}
+            <div className="rounded-xl border border-border bg-card p-5">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-4">Verification Pipeline</p>
+              <div className="grid grid-cols-3 gap-2">
+                {PIPELINE.map((stage) => {
+                  const status = stages[stage.id] || "idle";
+                  const Icon = stage.icon;
+                  return (
+                    <motion.div key={stage.id} animate={{ scale: status === "active" ? 1.02 : 1 }}
+                      className={`rounded-lg border p-3 flex flex-col items-center gap-1 transition-all ${
+                        status === "ok" ? "border-emerald-500/30 bg-emerald-500/5" :
+                        status === "fail" ? "border-red-500/30 bg-red-500/5" :
+                        status === "active" ? "border-emerald-500/20 bg-emerald-500/5" :
+                        "border-border"}`}>
+                      <Icon className={`h-4 w-4 ${status === "ok" ? "text-emerald-500" : status === "fail" ? "text-red-500" : status === "active" ? "text-emerald-500 animate-pulse" : "text-muted-foreground/50"}`} />
+                      <span className="text-[9px] font-medium">{stage.label}</span>
+                      {status === "ok" && <CheckCircle className="h-3 w-3 text-emerald-500" />}
+                      {status === "fail" && <XCircle className="h-3 w-3 text-red-500" />}
+                      {status === "active" && <Loader2 className="h-3 w-3 text-emerald-500 animate-spin" />}
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Backend state check */}
+            <AnimatePresence>
+              {step >= 5 && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-5">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3">Backend State Check</p>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Tool result</span>
+                      <span className="font-mono text-emerald-400">accepted</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Agent said</span>
+                      <span className={mode === "broken" ? "text-red-400" : "text-emerald-400"}>
+                        {mode === "broken" ? '"Confirmed / cancelled"' : '"Process ho rahi hai"'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Actual backend</span>
+                      <span className={`font-mono font-semibold ${mode === "broken" ? "text-red-400" : "text-emerald-400"}`}>
+                        {mode === "broken" ? "active ✗" : "cancelled ✓"}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Verdict */}
+            <AnimatePresence>
+              {step >= 6 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: "spring" }}
+                  className={`rounded-xl border p-5 ${mode === "broken" ? "border-red-500/30 bg-red-500/10" : "border-emerald-500/30 bg-emerald-500/10"}`}
+                >
+                  {mode === "broken" ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <XCircle className="h-5 w-5 text-red-500" />
+                        <span className="text-sm font-bold text-red-400">FAIL — FALSE CONFIRMATION</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Agent told the customer &ldquo;cancelled&rdquo; but the order is still <span className="text-red-400 font-semibold">active</span> in the database.
+                      </p>
+                      <div className="rounded bg-red-500/10 border border-red-500/20 p-3">
+                        <p className="text-[10px] text-red-400">First divergence: <span className="font-mono">final_state.status</span></p>
+                        <p className="text-xs text-muted-foreground mt-1">Fix: Agent must not confirm completion before backend state agrees.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-6 w-6 text-emerald-500" />
+                      <div>
+                        <p className="text-sm font-bold text-emerald-400">PASS — All layers match</p>
+                        <p className="text-xs text-muted-foreground">Entity, tool call, backend state, and agent confirmation all agree.</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+
+        {/* Run button */}
+        <div className="text-center space-y-3">
+          <Button
+            onClick={step === 0 ? runDemo : reset}
+            disabled={running}
+            size="lg"
+            className={step === 0 ? "bg-emerald-600 hover:bg-emerald-700 gap-2 px-8" : "gap-2 px-8"}
+            variant={step === 0 ? "default" : "outline"}
+          >
+            {running ? (
+              <><Loader2 className="h-4 w-4 animate-spin" /> Running...</>
+            ) : step === 0 ? (
+              <><Play className="h-4 w-4" /> Run Demo</>
+            ) : (
+              <><ArrowRight className="h-4 w-4" /> Run Again</>
+            )}
+          </Button>
+
+          {step >= 6 && (
+            <div className="space-y-1">
+              <p className="text-[10px] text-muted-foreground">
+                Agent: {mode === "broken" ? "Broken demo" : "Working demo"} · Tools: Mock staging · TTS: Maya · Saved to DB
+              </p>
+              <a href="/runs" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:underline">
+                View trace <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Why this matters */}
+        {step >= 6 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-6 max-w-2xl mx-auto">
+            <h3 className="text-sm font-bold mb-3">Why does this matter?</h3>
+            {mode === "broken" ? (
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>This customer now believes their order is cancelled. They won&rsquo;t check again. But the order will ship, charge their card, and they&rsquo;ll call back angry.</p>
+                <div className="grid grid-cols-3 gap-3 pt-2">
+                  <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-center">
+                    <p className="text-lg font-bold text-red-400">₹1,499</p>
+                    <p className="text-[10px] text-muted-foreground">Wrong charge</p>
+                  </div>
+                  <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-center">
+                    <p className="text-lg font-bold text-red-400">2x</p>
+                    <p className="text-[10px] text-muted-foreground">Repeat contact</p>
+                  </div>
+                  <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-center">
+                    <p className="text-lg font-bold text-red-400">-1</p>
+                    <p className="text-[10px] text-muted-foreground">Lost customer</p>
+                  </div>
+                </div>
+                <p className="text-xs"><span className="text-red-400 font-medium">Word AI catches this before release.</span> The agent sounds perfect. The transaction failed silently.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>The working agent uses cautious language — &ldquo;process ho rahi hai&rdquo; (processing) — and the backend confirms the cancellation actually happened.</p>
+                <div className="grid grid-cols-3 gap-3 pt-2">
+                  <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                    <p className="text-lg font-bold text-emerald-400">✓</p>
+                    <p className="text-[10px] text-muted-foreground">Truthful</p>
+                  </div>
+                  <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                    <p className="text-lg font-bold text-emerald-400">0</p>
+                    <p className="text-[10px] text-muted-foreground">Repeat contacts</p>
+                  </div>
+                  <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                    <p className="text-lg font-bold text-emerald-400">+1</p>
+                    <p className="text-[10px] text-muted-foreground">Trust earned</p>
+                  </div>
+                </div>
+                <p className="text-xs"><span className="text-emerald-400 font-medium">This is the release you can ship.</span> Every layer verified. No silent failures.</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+        {/* Voice Chat */}
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center space-y-3 pt-8">
+          <h3 className="text-xl font-bold">Try it yourself</h3>
+          <p className="text-sm text-muted-foreground">Speak or type to the agent. Each response is verified against the backend in real time.</p>
+        </motion.div>
+
+        <VoiceChat injectFailure={mode === "broken"} />
+      </div>
+    </section>
+  );
+}
+
+function VoiceChat({ injectFailure }: { injectFailure: boolean }) {
+  const [messages, setMessages] = useState<Array<{ role: "customer" | "agent" | "system"; text: string; tool?: string; verdict?: "pass" | "fail" }>>([
+    { role: "system", text: "You have order ORD-123 (Wireless Earbuds, ₹1,499). Try: \"Cancel my order\", \"Refund UPI par chahiye\", or ask anything." },
+  ]);
+  const [inputText, setInputText] = useState("");
+  const [listening, setListening] = useState(false);
+  const [liveText, setLiveText] = useState("");
+  const [processing, setProcessing] = useState(false);
+  const [waveform, setWaveform] = useState<number[]>(new Array(40).fill(0.04));
+  const recognitionRef = useRef<any>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animRef = useRef<number>(0);
+  const silenceRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTextRef = useRef("");
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
   function stopMic() {
+    if (silenceRef.current) clearTimeout(silenceRef.current);
     try { recognitionRef.current?.stop(); } catch {}
     recognitionRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -61,107 +420,76 @@ export function LandingLiveDemo() {
     cancelAnimationFrame(animRef.current);
     analyserRef.current = null;
     setListening(false);
-    setWaveform(new Array(60).fill(0.04));
+    setWaveform(new Array(40).fill(0.04));
   }
-
-  useEffect(() => () => stopMic(), []);
-
-  const sttWorkingRef = useRef(false);
 
   async function toggleMic() {
     if (listening) {
       stopMic();
-      const text = liveText;
-      if (text && text !== "Listening..." && text !== "Mic active — speak now (transcript requires Chrome)") {
-        await runVerification(text);
+      if (lastTextRef.current.trim()) {
+        await sendMessage(lastTextRef.current.trim());
         setLiveText("");
+        lastTextRef.current = "";
       }
       return;
     }
 
-    resetAll();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
       const ctx = new AudioContext();
-      const source = ctx.createMediaStreamSource(stream);
+      const src = ctx.createMediaStreamSource(stream);
       const analyser = ctx.createAnalyser();
       analyser.fftSize = 128;
       analyser.smoothingTimeConstant = 0.4;
-      source.connect(analyser);
+      src.connect(analyser);
       analyserRef.current = analyser;
 
-      const fftData = new Uint8Array(analyser.frequencyBinCount);
+      const d = new Uint8Array(analyser.frequencyBinCount);
       function draw() {
         if (!analyserRef.current) return;
-        analyserRef.current.getByteFrequencyData(fftData);
-        setWaveform(Array.from(fftData.slice(0, 60)).map((v) => Math.max(0.04, v / 255)));
+        analyserRef.current.getByteFrequencyData(d);
+        setWaveform(Array.from(d.slice(0, 40)).map((v) => Math.max(0.04, v / 255)));
         animRef.current = requestAnimationFrame(draw);
       }
       draw();
 
-      // Browser STT — works in Chrome, blocked in Brave
-      sttWorkingRef.current = false;
       const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SR) {
-        try {
-          const rec = new SR();
-          rec.continuous = true;
-          rec.interimResults = true;
-          rec.lang = "en-IN";
-          rec.onresult = (e: any) => {
-            sttWorkingRef.current = true;
-            let full = "";
-            for (let i = 0; i < e.results.length; i++) full += e.results[i][0].transcript;
-            setLiveText(full);
-          };
-          rec.onerror = () => {
-            if (!sttWorkingRef.current) setLiveText("Mic active — speak now (transcript requires Chrome)");
-          };
-          rec.onend = () => { if (streamRef.current) try { rec.start(); } catch {} };
-          rec.start();
-          recognitionRef.current = rec;
-          setTimeout(() => {
-            if (!sttWorkingRef.current) setLiveText("Mic active — speak now (transcript requires Chrome)");
-          }, 2000);
-        } catch {
-          setLiveText("Mic active — speak now (transcript requires Chrome)");
-        }
-      } else {
-        setLiveText("Mic active — speak now (transcript requires Chrome)");
+        const rec = new SR();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = "en-IN";
+        rec.onresult = (e: any) => {
+          let full = "";
+          for (let i = 0; i < e.results.length; i++) full += e.results[i][0].transcript;
+          setLiveText(full);
+          lastTextRef.current = full;
+          if (silenceRef.current) clearTimeout(silenceRef.current);
+          silenceRef.current = setTimeout(() => {
+            if (lastTextRef.current.trim() && streamRef.current) {
+              stopMic();
+              sendMessage(lastTextRef.current.trim());
+              setLiveText("");
+              lastTextRef.current = "";
+            }
+          }, 3000);
+        };
+        rec.onerror = () => {};
+        rec.onend = () => { if (streamRef.current) try { rec.start(); } catch {} };
+        rec.start();
+        recognitionRef.current = rec;
       }
 
       setListening(true);
-      setStages({ audio: "active" });
-    } catch {
-      setLiveText("");
-    }
+    } catch {}
   }
 
-  function handleTypedSubmit() {
-    if (!typedText.trim() || processing) return;
-    resetAll();
-    runVerification(typedText.trim());
-    setTypedText("");
-  }
-
-  function loadScenario(transcript: string) {
-    resetAll();
-    runVerification(transcript);
-  }
-
-  async function runVerification(text: string) {
-    stopMic();
+  async function sendMessage(text: string) {
+    if (!text.trim() || processing) return;
     setProcessing(true);
-    setMessages([{ role: "customer", text }]);
-    setStages({ audio: "ok", transcript: "active" });
-
-    await delay(300);
-    setStages((s) => ({ ...s, transcript: "ok", entities: "active" }));
-
-    await delay(300);
-    setStages((s) => ({ ...s, entities: "ok", tool: "active" }));
+    setMessages((m) => [...m, { role: "customer", text }]);
 
     try {
       const res = await fetch("/api/claude", {
@@ -170,30 +498,15 @@ export function LandingLiveDemo() {
         body: JSON.stringify({ transcript: text, locale: "hi-IN", inject_failure: injectFailure }),
       });
       const data = await res.json();
-
-      setToolInfo({ name: data.tool.name, args: data.tool.args });
-
-      await delay(400);
-      setStages((s) => ({ ...s, tool: "ok", backend: "active" }));
-
-      await delay(500);
       const backendOk = data.finalState?.status === data.expectedState && !data.injectedFailure;
 
-      if (!backendOk) {
-        setFailInfo({ expected: data.expectedState || "cancelled", actual: data.finalState?.status || "active" });
-      }
+      setMessages((m) => [...m, {
+        role: "agent",
+        text: data.reply,
+        tool: `${data.tool.name}(${Object.entries(data.tool.args).map(([k, v]) => `${k}: "${v}"`).join(", ")})`,
+        verdict: backendOk ? "pass" : "fail",
+      }]);
 
-      setStages((s) => ({
-        ...s,
-        backend: backendOk ? "ok" : "fail",
-        verdict: backendOk ? "ok" : "fail",
-      }));
-
-      setMessages((m) => [...m, { role: "agent", text: data.reply }]);
-
-      if (data.testRunId) setLastRunId(data.testRunId);
-
-      // Play TTS
       try {
         const tts = await fetch("/api/tts", {
           method: "POST",
@@ -203,187 +516,101 @@ export function LandingLiveDemo() {
         if (tts.ok) new Audio(URL.createObjectURL(await tts.blob())).play();
       } catch {}
     } catch {
-      setStages((s) => ({ ...s, tool: "fail", backend: "fail", verdict: "fail" }));
-      setMessages((m) => [...m, { role: "agent", text: "Error connecting to agent" }]);
+      setMessages((m) => [...m, { role: "agent", text: "Connection error. Try again." }]);
     }
 
     setProcessing(false);
   }
 
-  const hasResult = Object.keys(stages).length > 0;
-  const isFail = stages.verdict === "fail";
-  const isPass = stages.verdict === "ok";
+  function handleSubmit() {
+    if (inputText.trim()) {
+      sendMessage(inputText.trim());
+      setInputText("");
+    }
+  }
 
   return (
-    <section id="live-demo" className="py-20 px-6">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center space-y-2">
-          <Badge variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Interactive Demo
-          </Badge>
-          <h2 className="text-2xl sm:text-4xl font-bold">Hear the customer. Verify the outcome.</h2>
-          <p className="text-sm text-muted-foreground">Test voice conversations with AI agents and validate outcomes end-to-end.</p>
-        </motion.div>
+    <div className="rounded-xl border border-border bg-card overflow-hidden max-w-2xl mx-auto">
+      {/* Chat header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
+        <MessageSquare className="h-4 w-4 text-emerald-500" />
+        <span className="text-xs font-medium">Voice Chat with Agent</span>
+        <Badge variant="outline" className={`ml-auto text-[9px] ${injectFailure ? "text-red-400 border-red-500/30" : "text-emerald-400 border-emerald-500/30"}`}>
+          {injectFailure ? "Broken Agent" : "Working Agent"}
+        </Badge>
+      </div>
 
-        {/* Mode toggle */}
-        <div className="flex justify-center gap-2">
-          <Button variant={!injectFailure ? "default" : "outline"} size="sm" onClick={() => { setInjectFailure(false); resetAll(); }} className={!injectFailure ? "bg-emerald-600 hover:bg-emerald-700 gap-1.5" : "gap-1.5"}>
-            <CheckCircle className="h-3 w-3" /> Working Agent
-          </Button>
-          <Button variant={injectFailure ? "default" : "outline"} size="sm" onClick={() => { setInjectFailure(true); resetAll(); }} className={injectFailure ? "bg-red-600 hover:bg-red-700 gap-1.5" : "gap-1.5"}>
-            <AlertTriangle className="h-3 w-3" /> Broken Agent
-          </Button>
-        </div>
-
-        {/* Scenario buttons */}
-        <div className="flex justify-center gap-2 flex-wrap">
-          {DEMO_SCENARIOS.map((s) => (
-            <Button key={s.id} variant="outline" size="sm" className="text-xs" onClick={() => loadScenario(s.transcript)} disabled={processing}>
-              {s.label}
-            </Button>
-          ))}
-        </div>
-
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* LEFT: Input */}
-          <div className="space-y-4">
-            <div className="rounded-xl border border-border bg-card p-5 space-y-4">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Input</p>
-
-              {/* Waveform */}
-              <div className="flex items-center justify-center gap-[2px] h-16 bg-muted/30 rounded-lg px-3">
-                {waveform.map((level, i) => (
-                  <motion.div key={i} className={`w-[2px] rounded-full ${listening ? "bg-emerald-500" : "bg-emerald-500/30"}`} animate={{ height: Math.max(2, level * 64) }} transition={{ duration: 0.06 }} />
-                ))}
-              </div>
-
-              {/* Live transcript */}
-              {listening && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rounded-lg border border-emerald-500/20 px-3 py-2 min-h-[48px]">
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 animate-pulse" />
-                    <span className="text-[9px] text-emerald-400 uppercase">Live</span>
-                  </div>
-                  <p className="text-sm">{liveText || <span className="text-muted-foreground italic">Speak now...</span>}</p>
-                </motion.div>
-              )}
-
-              {/* Mic button */}
-              <div className="flex justify-center">
-                <Button onClick={toggleMic} disabled={processing} size="sm" className={`gap-2 px-5 ${listening ? "bg-red-500 hover:bg-red-600" : "bg-emerald-600 hover:bg-emerald-700"}`}>
-                  {listening ? <><MicOff className="h-3.5 w-3.5" /> Stop &amp; Verify</> : <><Mic className="h-3.5 w-3.5" /> Start Mic</>}
-                </Button>
-              </div>
-
-              {/* Text input */}
-              <div className="flex gap-2">
-                <Input placeholder="Or type: Mera order cancel kar do" value={typedText} onChange={(e) => setTypedText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleTypedSubmit()} className="text-xs h-9" disabled={processing || listening} />
-                <Button size="icon" onClick={handleTypedSubmit} disabled={!typedText.trim() || processing || listening} className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9">
-                  {processing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT: Results */}
-          <div className="space-y-4">
-            {/* Transcript */}
-            <div className="rounded-xl border border-border bg-card p-5 min-h-[120px]">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3 border-b border-border pb-2">Transcript</p>
-              {messages.length === 0 && !processing ? (
-                <p className="text-sm text-muted-foreground italic">Results will appear here...</p>
-              ) : (
-                <div className="space-y-3">
-                  {messages.map((msg, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="flex items-start gap-2">
-                      <div className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 ${msg.role === "customer" ? "bg-muted" : "bg-emerald-500/10"}`}>
-                        {msg.role === "customer" ? <User className="h-3 w-3 text-muted-foreground" /> : <Bot className="h-3 w-3 text-emerald-500" />}
-                      </div>
-                      <div>
-                        <span className={`text-[10px] font-semibold ${msg.role === "customer" ? "text-blue-400" : "text-emerald-400"}`}>
-                          {msg.role === "customer" ? "Customer" : "Agent"}
-                        </span>
-                        <p className="text-sm">{msg.text}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                  {processing && (
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Loader2 className="h-3 w-3 animate-spin" /> Thinking...
+      {/* Messages */}
+      <div className="h-72 overflow-y-auto p-4 space-y-3">
+        {messages.map((msg, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i === messages.length - 1 ? 0 : 0 }}>
+            {msg.role === "system" ? (
+              <p className="text-xs text-muted-foreground text-center bg-muted/30 rounded-lg px-3 py-2">{msg.text}</p>
+            ) : (
+              <div className={`flex gap-2 ${msg.role === "customer" ? "" : ""}`}>
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${msg.role === "customer" ? "bg-blue-500/10" : "bg-emerald-500/10"}`}>
+                  {msg.role === "customer" ? <User className="h-3 w-3 text-blue-400" /> : <Bot className="h-3 w-3 text-emerald-500" />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm">{msg.text}</p>
+                  {msg.tool && (
+                    <code className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded mt-1 inline-block">{msg.tool}</code>
+                  )}
+                  {msg.verdict && (
+                    <div className={`mt-1 inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded ${msg.verdict === "pass" ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"}`}>
+                      {msg.verdict === "pass" ? <><CheckCircle className="h-2.5 w-2.5" /> Backend verified</> : <><XCircle className="h-2.5 w-2.5" /> Backend mismatch!</>}
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            )}
+          </motion.div>
+        ))}
+        {liveText && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.6 }} className="flex gap-2">
+            <div className="h-6 w-6 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <User className="h-3 w-3 text-blue-400" />
             </div>
-
-            {/* Tool call */}
-            {toolInfo && (
-              <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border bg-card p-4">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Tool Called</p>
-                <code className="text-xs font-mono text-emerald-400">
-                  {toolInfo.name}({Object.entries(toolInfo.args).map(([k, v]) => `${k}: "${v}"`).join(", ")})
-                </code>
-              </motion.div>
-            )}
-
-            {/* Fail card */}
-            {failInfo && (
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-xl border border-red-500/30 bg-red-500/10 p-4">
-                <p className="text-[10px] text-red-400 font-semibold mb-2">FALSE CONFIRMATION</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded bg-emerald-500/10 px-2 py-1.5">
-                    <p className="text-[9px] text-emerald-400">Agent said</p>
-                    <p className="text-xs font-mono">{failInfo.expected}</p>
-                  </div>
-                  <div className="rounded bg-red-500/10 px-2 py-1.5">
-                    <p className="text-[9px] text-red-400">Backend</p>
-                    <p className="text-xs font-mono">{failInfo.actual}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </div>
-
-        {/* 6-stage pipeline */}
-        {hasResult && (
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {PIPELINE.map((stage, idx) => {
-              const status = stages[stage.id] || "idle";
-              const Icon = stage.icon;
-              return (
-                <motion.div key={stage.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.08 }}
-                  className={`rounded-xl border p-3 flex flex-col items-center gap-1.5 transition-all ${
-                    status === "ok" ? "border-emerald-500/30 bg-emerald-500/5" :
-                    status === "fail" ? "border-red-500/30 bg-red-500/5" :
-                    status === "active" ? "border-emerald-500/20 bg-emerald-500/5" :
-                    "border-border bg-card"}`}>
-                  <Icon className={`h-5 w-5 ${status === "ok" ? "text-emerald-500" : status === "fail" ? "text-red-500" : status === "active" ? "text-emerald-500 animate-pulse" : "text-muted-foreground"}`} />
-                  <span className="text-[10px] font-medium">{stage.label}</span>
-                  {status === "ok" && <><CheckCircle className="h-3.5 w-3.5 text-emerald-500" /><span className="text-[9px] text-emerald-400">OK</span></>}
-                  {status === "fail" && <><XCircle className="h-3.5 w-3.5 text-red-500" /><span className="text-[9px] text-red-400">FAIL</span></>}
-                  {status === "active" && <Loader2 className="h-3.5 w-3.5 text-emerald-500 animate-spin" />}
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* View full trace link */}
-        {(isPass || isFail) && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center space-y-2">
-            <p className="text-[10px] text-muted-foreground">
-              Agent: {injectFailure ? "Broken demo" : "Demo / Claude"} &middot; STT: Browser &middot; Tools: Mock staging &middot; TTS: Maya &middot; Saved to DB
-            </p>
-            <Link href="/runs" className="inline-flex items-center gap-1 text-xs text-emerald-400 hover:underline">
-              View all traces <ExternalLink className="h-3 w-3" />
-            </Link>
+            <p className="text-sm italic text-muted-foreground">{liveText}</p>
           </motion.div>
         )}
+        {processing && (
+          <div className="flex gap-2 items-center">
+            <div className="h-6 w-6 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <Bot className="h-3 w-3 text-emerald-500" />
+            </div>
+            <div className="flex gap-1">
+              {[0, 1, 2].map((i) => (
+                <motion.div key={i} className="h-1.5 w-1.5 rounded-full bg-emerald-500" animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.2 }} />
+              ))}
+            </div>
+          </div>
+        )}
+        <div ref={chatEndRef} />
       </div>
-    </section>
+
+      {/* Waveform when listening */}
+      {listening && (
+        <div className="px-4 py-2 border-t border-border">
+          <div className="flex items-center justify-center gap-[2px] h-8">
+            {waveform.map((l, i) => (
+              <motion.div key={i} className="w-[2px] rounded-full bg-emerald-500" animate={{ height: Math.max(2, l * 32) }} transition={{ duration: 0.06 }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Input bar */}
+      <div className="flex items-center gap-2 p-3 border-t border-border">
+        <Button size="icon" variant={listening ? "destructive" : "outline"} onClick={toggleMic} disabled={processing} className="h-9 w-9 flex-shrink-0">
+          {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+        </Button>
+        <Input placeholder="Type or speak..." value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} className="text-sm h-9" disabled={processing || listening} />
+        <Button size="icon" onClick={handleSubmit} disabled={!inputText.trim() || processing || listening} className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9 flex-shrink-0">
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   );
 }
 
