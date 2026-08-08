@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   return NextResponse.json({
-    service: "Word AI Ingestion API",
+    service: "The Voice Ingestion API",
     version: "1.0",
     endpoints: {
       "POST /api/ingest": {

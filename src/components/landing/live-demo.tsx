@@ -118,7 +118,7 @@ export function LandingLiveDemo() {
           <Badge variant="outline" className="gap-1.5 border-emerald-500/30 text-emerald-500">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Interactive Demo
           </Badge>
-          <h2 className="text-2xl sm:text-4xl font-bold">See Word AI catch a real failure</h2>
+          <h2 className="text-2xl sm:text-4xl font-bold">See The Voice catch a real failure</h2>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
             A customer calls to cancel an order. The agent responds. But did the backend actually cancel it?
           </p>
@@ -356,7 +356,7 @@ export function LandingLiveDemo() {
                     <p className="text-[10px] text-muted-foreground">Lost customer</p>
                   </div>
                 </div>
-                <p className="text-xs"><span className="text-red-400 font-medium">Word AI catches this before release.</span> The agent sounds perfect. The transaction failed silently.</p>
+                <p className="text-xs"><span className="text-red-400 font-medium">The Voice catches this before release.</span> The agent sounds perfect. The transaction failed silently.</p>
               </div>
             ) : (
               <div className="space-y-3 text-sm text-muted-foreground">

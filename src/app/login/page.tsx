@@ -79,7 +79,7 @@ export default function LoginPage() {
           </motion.div>
           <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
           <p className="text-sm text-muted-foreground">
-            Sign in to Word AI
+            Sign in to The Voice
           </p>
         </div>
 

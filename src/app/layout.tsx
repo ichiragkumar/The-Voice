@@ -14,7 +14,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Word AI — Voice Agent Truth Layer",
+  title: "The Voice — Voice Agent Truth Layer",
   description:
     "Verifies business transactions performed by Indian-language voice agents.",
 };

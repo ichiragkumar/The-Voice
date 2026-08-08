@@ -18,7 +18,7 @@ export default function Home() {
       <LandingCTA />
       <footer className="border-t border-border py-8 px-6 text-center">
         <p className="text-xs text-muted-foreground tracking-widest uppercase">
-          Word AI &middot; Voice Agent Truth Layer &middot; Hindi &middot;
+          The Voice &middot; Voice Agent Truth Layer &middot; Hindi &middot;
           Hinglish &middot; English
         </p>
       </footer>

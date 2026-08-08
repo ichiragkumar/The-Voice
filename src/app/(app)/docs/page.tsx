@@ -65,7 +65,7 @@ export default function DocsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
             <p className="text-muted-foreground mt-2">
-              Everything you need to integrate Word AI into your voice agent pipeline.
+              Everything you need to integrate The Voice into your voice agent pipeline.
             </p>
           </div>
         </FadeIn>
@@ -78,9 +78,9 @@ export default function DocsPage() {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Word AI is a <strong>transaction assurance layer</strong> for Indian-language
+                The Voice is a <strong>transaction assurance layer</strong> for Indian-language
                 voice agents. Unlike generic testing platforms that check if conversations look
-                correct, Word AI verifies that the caller&rsquo;s exact request became the correct
+                correct, The Voice verifies that the caller&rsquo;s exact request became the correct
                 business transaction in your backend.
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -228,7 +228,7 @@ console.log(result.passed); // false if tool said success but refund didn't happ
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground mb-4">
-                Word AI normalizes Indian expressions that generic platforms miss:
+                The Voice normalizes Indian expressions that generic platforms miss:
               </p>
               <div className="space-y-3">
                 {[
@@ -304,7 +304,7 @@ bq.addPolicyPack(COLLECTIONS_POLICY);`} />
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground mb-4">
-                Word AI normalizes tool-call formats from any vendor:
+                The Voice normalizes tool-call formats from any vendor:
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {["Bolna", "Vapi", "Retell AI", "LiveKit", "Pipecat", "Sarvam AI", "Custom"].map((v) => (
@@ -350,7 +350,7 @@ bq.addPolicyPack(COLLECTIONS_POLICY);`} />
 ./scripts/wordai-test.sh --suite ecommerce-hindi --url http://localhost:3000
 
 # GitHub Actions — add to your workflow
-- name: Word AI Gate
+- name: The Voice Gate
   env:
     WORDAI_URL: \${{ secrets.WORDAI_URL }}
     WORDAI_API_KEY: \${{ secrets.WORDAI_API_KEY }}
@@ -364,10 +364,10 @@ bq.addPolicyPack(COLLECTIONS_POLICY);`} />
           </h2>
           <Card className="border-emerald-500/20 bg-emerald-500/5">
             <CardContent className="pt-6 space-y-4">
-              <p className="text-sm font-medium">This is what makes Word AI different.</p>
+              <p className="text-sm font-medium">This is what makes The Voice different.</p>
               <p className="text-sm text-muted-foreground">
                 Cekura and other platforms verify tool calls by reading function-call events
-                in the transcript. Word AI independently queries your backend AFTER the call
+                in the transcript. The Voice independently queries your backend AFTER the call
                 to verify the transaction actually completed correctly.
               </p>
               <CodeBlock language="typescript" code={`// The tool call said "success" — but did it really happen?
@@ -380,7 +380,7 @@ bq.assertFinalState(async () => {
   };
 });
 
-// Word AI catches:
+// The Voice catches:
 // - Tool returned success but order is still active
 // - Refund amount is wrong (full order instead of single item)
 // - Appointment date in calendar doesn't match what was confirmed
@@ -391,7 +391,7 @@ bq.assertFinalState(async () => {
 
         <Separator />
         <p className="text-xs text-muted-foreground text-center pb-8">
-          Word AI — Voice Agent Truth Layer &middot; Built with Next.js, Claude, and Maya
+          The Voice — Voice Agent Truth Layer &middot; Built with Next.js, Claude, and Maya
         </p>
       </div>
     </div>

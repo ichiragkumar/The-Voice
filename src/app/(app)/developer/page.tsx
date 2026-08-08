@@ -52,7 +52,7 @@ const ENV_TEMPLATE = `# Add to your .env file
 WORDAI_API_KEY="your-api-key-here"
 WORDAI_ENDPOINT="https://your-wordai-instance.vercel.app"`;
 
-const FULL_MARKDOWN = `# Word AI SDK Integration
+const FULL_MARKDOWN = `# The Voice SDK Integration
 
 ## Install
 \`\`\`bash

@@ -31,7 +31,7 @@ function NavContent({ pathname, userName }: { pathname: string; userName: string
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-6 py-5 border-b border-border">
         <Shield className="h-6 w-6 text-emerald-500" />
-        <span className="text-lg font-semibold tracking-tight">Word AI</span>
+        <span className="text-lg font-semibold tracking-tight">The Voice</span>
       </div>
       <nav className="flex flex-col gap-1 p-3 flex-1">
         {navItems.map((item) => (
@@ -50,21 +50,36 @@ function NavContent({ pathname, userName }: { pathname: string; userName: string
           </Link>
         ))}
       </nav>
-      <div className="border-t border-border p-3 space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <ThemeToggle />
-          <form action={logoutAction}>
-            <Button variant="ghost" size="icon" type="submit">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </form>
-        </div>
+      <div className="border-t border-border p-3 space-y-3">
         {userName && (
-          <div className="flex items-center gap-2 px-1">
-            <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-400">
-              {userName.charAt(0).toUpperCase()}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs font-bold text-emerald-400">
+                {userName.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p className="text-xs font-medium">{userName}</p>
+                <p className="text-[10px] text-muted-foreground">Customer</p>
+              </div>
             </div>
-            <span className="text-xs font-medium truncate">{userName}</span>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <form action={logoutAction}>
+                <Button variant="ghost" size="icon" type="submit">
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
+          </div>
+        )}
+        {!userName && (
+          <div className="flex items-center justify-between px-1">
+            <ThemeToggle />
+            <form action={logoutAction}>
+              <Button variant="ghost" size="icon" type="submit">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </form>
           </div>
         )}
       </div>
@@ -107,7 +122,7 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
         <Shield className="h-5 w-5 text-emerald-500" />
-        <span className="font-semibold">Word AI</span>
+        <span className="font-semibold">The Voice</span>
         <div className="ml-auto">
           <ThemeToggle />
         </div>

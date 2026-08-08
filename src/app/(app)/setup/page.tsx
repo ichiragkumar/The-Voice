@@ -35,7 +35,7 @@ bq.addPolicyPack(ECOMMERCE_POLICY);
 const result = await bq.verify();
 // result.passed → false if tool said success but order is still active`;
 
-const WEBHOOK_CODE = `// Send production calls to Word AI
+const WEBHOOK_CODE = `// Send production calls to The Voice
 const res = await fetch("https://your-wordai.vercel.app/api/ingest", {
   method: "POST",
   headers: {
@@ -67,7 +67,7 @@ export default function SetupPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quick Setup</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Integrate Word AI into your voice agent in under 5 minutes
+            Integrate The Voice into your voice agent in under 5 minutes
           </p>
         </div>
       </FadeIn>
@@ -110,9 +110,9 @@ export default function SetupPage() {
             <div>
               <p className="font-semibold">What makes this different from Cekura</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Cekura checks tool-call events in transcripts. Word AI independently queries
+                Cekura checks tool-call events in transcripts. The Voice independently queries
                 your backend AFTER the call to verify the transaction actually happened correctly.
-                Tool said &ldquo;success&rdquo; but order is still active? Word AI catches it.
+                Tool said &ldquo;success&rdquo; but order is still active? The Voice catches it.
               </p>
             </div>
           </CardContent>

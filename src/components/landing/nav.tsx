@@ -16,7 +16,7 @@ export function LandingNav() {
       <div className="flex items-center gap-2">
         <Shield className="h-5 w-5 text-emerald-500" />
         <span className="text-sm font-semibold tracking-wider uppercase">
-          Word AI
+          The Voice
         </span>
       </div>
       <div className="flex items-center gap-6">

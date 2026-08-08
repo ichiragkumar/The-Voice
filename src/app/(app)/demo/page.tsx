@@ -89,7 +89,7 @@ export default function DemoPage() {
         <div>
           <h2 className="text-lg font-semibold mb-4">Sample Customer Phrases</h2>
           <p className="text-sm text-muted-foreground mb-4">
-            These are real scenarios Word AI tests against. Click <Volume2 className="inline h-3 w-3" /> to hear them.
+            These are real scenarios The Voice tests against. Click <Volume2 className="inline h-3 w-3" /> to hear them.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
             {SAMPLE_PHRASES.map((phrase) => (
@@ -129,7 +129,7 @@ export default function DemoPage() {
                 <h3 className="font-semibold">Powered by Maya Research</h3>
                 <p className="text-sm text-muted-foreground mt-1">
                   Native-sounding speech in 11 Indian languages with ~75ms latency.
-                  Maya generates realistic customer audio for Word AI test scenarios.
+                  Maya generates realistic customer audio for The Voice test scenarios.
                 </p>
               </div>
             </div>

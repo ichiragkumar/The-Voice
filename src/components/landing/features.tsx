@@ -66,7 +66,7 @@ export function LandingFeatures() {
           </h2>
           <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
             Generic platforms tell you if the conversation looked correct.
-            Word AI verifies that the customer&rsquo;s exact request became
+            The Voice verifies that the customer&rsquo;s exact request became
             the correct transaction.
           </p>
         </motion.div>

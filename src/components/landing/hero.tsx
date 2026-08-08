@@ -30,16 +30,15 @@ export function LandingHero() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            Your voice agent said{" "}
+            Say the job.{" "}
             <span className="bg-gradient-to-r from-emerald-500 to-emerald-400 bg-clip-text text-transparent">
-              &ldquo;done.&rdquo;
+              The Voice
             </span>
-            <br />
-            Did the backend agree?
+            {" "}gets it done.
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-            Transaction-integrity testing for Hindi &amp; Hinglish voice agents.
+            One spoken command in Hindi, Hinglish or English — books, assigns, updates and notifies across your business tools.
           </p>
         </motion.div>
 

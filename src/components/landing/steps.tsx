@@ -12,12 +12,12 @@ const steps = [
   {
     num: "02",
     title: "Upload call data",
-    desc: "Upload transcripts, tool-call logs, and backend state. Word AI handles Hindi, Hinglish, and English — including code-switching mid-sentence.",
+    desc: "Upload transcripts, tool-call logs, and backend state. The Voice handles Hindi, Hinglish, and English — including code-switching mid-sentence.",
   },
   {
     num: "03",
     title: "Verify every layer",
-    desc: "Word AI extracts entities, normalizes Indian expressions (saade chaar → 4:30, parson → day after tomorrow), and compares against your backend.",
+    desc: "The Voice extracts entities, normalizes Indian expressions (saade chaar → 4:30, parson → day after tomorrow), and compares against your backend.",
   },
   {
     num: "04",

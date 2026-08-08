@@ -1,6 +1,6 @@
 import { anthropic } from "@ai-sdk/anthropic";
 
-export const MODEL_ID = "claude-sonnet-4-20250514";
+export const MODEL_ID = "claude-sonnet-4-6";
 
 export function getModel() {
   return anthropic(MODEL_ID);

@@ -24,7 +24,7 @@ export function LandingCTA() {
           </span>
         </h2>
         <p className="text-muted-foreground text-lg max-w-xl mx-auto">
-          Small prompt changes cause big quality swings. Word AI catches
+          Small prompt changes cause big quality swings. The Voice catches
           regressions before your customers do.
         </p>
         <div className="flex items-center justify-center gap-4 pt-4">

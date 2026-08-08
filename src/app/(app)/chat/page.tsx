@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Mic, MicOff, Send, User, Bot, CheckCircle, XCircle,
-  ShoppingCart, Loader2, MessageSquare, Volume2,
+  ShoppingCart, Loader2, MessageSquare, Volume2, Plus,
 } from "lucide-react";
 
 type Message = {
@@ -200,7 +200,7 @@ export default function ChatPage() {
       <div className="hidden lg:block w-64 flex-shrink-0 space-y-2 overflow-y-auto">
         <div className="flex items-center gap-2 mb-3">
           <ShoppingCart className="h-4 w-4 text-emerald-500" />
-          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your Orders</span>
+          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Context</span>
         </div>
         {orders.map((o) => (
           <Card key={o.orderId} className="hover:border-emerald-500/20 transition-all">
@@ -223,7 +223,14 @@ export default function ChatPage() {
         {/* Header */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30">
           <MessageSquare className="h-4 w-4 text-emerald-500" />
-          <span className="text-sm font-medium">ShopEasy Support</span>
+          <span className="text-sm font-medium">The Voice</span>
+          <Button variant="ghost" size="sm" className="gap-1 text-xs h-7" onClick={async () => {
+            await fetch("/api/chat/new", { method: "POST" });
+            fetch("/api/chat/history").then((r) => r.json()).then(setMessages);
+            refreshOrders();
+          }}>
+            <Plus className="h-3 w-3" /> New Chat
+          </Button>
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value)}
@@ -312,7 +319,7 @@ export default function ChatPage() {
           <Button size="icon" variant={listening ? "destructive" : "outline"} onClick={toggleMic} disabled={processing} className="h-9 w-9 flex-shrink-0">
             {listening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
           </Button>
-          <Input placeholder="Cancel my order..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} className="text-sm h-9" disabled={processing || listening} />
+          <Input placeholder="Say the job. e.g., Cancel my order, Track package, Place new order..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && handleSubmit()} className="text-sm h-9" disabled={processing || listening} />
           <Button size="icon" onClick={handleSubmit} disabled={!input.trim() || processing || listening} className="bg-emerald-600 hover:bg-emerald-700 h-9 w-9 flex-shrink-0">
             {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
