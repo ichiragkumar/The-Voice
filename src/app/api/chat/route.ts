@@ -148,7 +148,8 @@ When using a tool, always confirm the result to the customer.`;
       system: sys,
       prompt: message,
       tools: execTools,
-      maxSteps: 3 as any,
+      // @ts-ignore — maxSteps supported at runtime
+      maxSteps: 3,
     });
 
     reply = result.text || "Done.";
