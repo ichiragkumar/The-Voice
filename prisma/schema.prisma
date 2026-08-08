@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Audit {
+  id          String   @id @default(cuid())
+  name        String
+  agentPrompt String?
+  status      String   @default("pending")
+  totalCalls  Int      @default(0)
+  failedCalls Int      @default(0)
+  failureRate Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  calls       Call[]
+}
+
+model Call {
+  id          String       @id @default(cuid())
+  auditId     String
+  audioUrl    String?
+  transcript  String
+  language    String
+  status      String       @default("pending")
+  summary     String?
+  createdAt   DateTime     @default(now())
+  audit       Audit        @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  entities    Entity[]
+  toolCalls   ToolCall[]
+  comparisons Comparison[]
+}
+
+model Entity {
+  id              String       @id @default(cuid())
+  callId          String
+  type            String
+  rawValue        String
+  normalizedValue String
+  confidence      Float
+  sourceLayer     String
+  timestampStart  Float?
+  timestampEnd    Float?
+  call            Call         @relation(fields: [callId], references: [id], onDelete: Cascade)
+  comparisons     Comparison[]
+}
+
+model ToolCall {
+  id           String       @id @default(cuid())
+  callId       String
+  functionName String
+  arguments    String
+  response     String?
+  timestamp    DateTime?
+  call         Call         @relation(fields: [callId], references: [id], onDelete: Cascade)
+  comparisons  Comparison[]
+}
+
+model Comparison {
+  id            String    @id @default(cuid())
+  callId        String
+  entityId      String?
+  toolCallId    String?
+  expectedValue String
+  actualValue   String
+  match         Boolean
+  rootCause     String?
+  evidence      String?
+  severity      String
+  call          Call      @relation(fields: [callId], references: [id], onDelete: Cascade)
+  entity        Entity?   @relation(fields: [entityId], references: [id])
+  toolCall      ToolCall? @relation(fields: [toolCallId], references: [id])
+}

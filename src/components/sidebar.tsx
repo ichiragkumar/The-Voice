@@ -1,0 +1,89 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useState } from "react";
+import { logoutAction } from "@/actions/auth-actions";
+
+const navItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/audits", label: "Audits", icon: FileSearch },
+  { href: "/audits/new", label: "New Audit", icon: Plus },
+];
+
+function NavContent({ pathname }: { pathname: string }) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex items-center gap-2 px-6 py-5 border-b border-border">
+        <Shield className="h-6 w-6 text-emerald-500" />
+        <span className="text-lg font-semibold tracking-tight">BhashaQA</span>
+      </div>
+      <nav className="flex flex-col gap-1 p-3 flex-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              pathname === item.href || pathname.startsWith(item.href + "/")
+                ? "bg-accent text-accent-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <item.icon className="h-4 w-4" />
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+      <div className="border-t border-border p-3 space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <ThemeToggle />
+          <form action={logoutAction}>
+            <Button variant="ghost" size="icon" type="submit">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+        <p className="text-xs text-muted-foreground px-1">
+          Voice Agent Truth Layer
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col bg-card border-r border-border">
+        <NavContent pathname={pathname} />
+      </aside>
+
+      <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-2 border-b border-border bg-background px-4 py-3 lg:hidden">
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger
+            render={<Button variant="ghost" size="icon" />}
+          >
+            <Menu className="h-5 w-5" />
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-0">
+            <NavContent pathname={pathname} />
+          </SheetContent>
+        </Sheet>
+        <Shield className="h-5 w-5 text-emerald-500" />
+        <span className="font-semibold">BhashaQA</span>
+        <div className="ml-auto">
+          <ThemeToggle />
+        </div>
+      </div>
+    </>
+  );
+}
