@@ -19,7 +19,7 @@ export async function synthesizeSpeech(
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
-      "user-agent": "bhashaqa/1.0",
+      "user-agent": "wordai/1.0",
     },
     body: JSON.stringify(body),
   });

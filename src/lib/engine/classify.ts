@@ -1,6 +1,6 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod/v4";
+import { getModel, isAIConfigured } from "../ai";
 import { getClassificationPrompt } from "../prompts/classification";
 import type { ComparisonResult } from "./compare";
 
@@ -22,8 +22,12 @@ export async function classifyRootCause(
   transcriptExcerpt: string,
   agentResponse: string = ""
 ): Promise<ClassificationResult> {
+  if (!isAIConfigured()) {
+    throw new Error("ANTHROPIC_API_KEY not set — add it to .env to enable Claude-powered classification");
+  }
+
   const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: getModel(),
     schema: ClassificationSchema,
     prompt: getClassificationPrompt(
       comparison.expectedValue,

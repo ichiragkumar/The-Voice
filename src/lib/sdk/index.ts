@@ -1,5 +1,5 @@
 import type {
-  BhashaQAConfig,
+  WordAIConfig,
   EntityAssertion,
   ToolTrace,
   FinalStateCallback,
@@ -8,8 +8,8 @@ import type {
   VerificationResult,
 } from "./types";
 
-export class BhashaQA {
-  private config: BhashaQAConfig;
+export class WordAI {
+  private config: WordAIConfig;
   private transcript = "";
   private language = "hinglish";
   private entities: EntityAssertion[] = [];
@@ -17,7 +17,7 @@ export class BhashaQA {
   private finalStateCallback: FinalStateCallback | null = null;
   private policyRules: PolicyRule[] = [];
 
-  constructor(config: BhashaQAConfig = {}) {
+  constructor(config: WordAIConfig = {}) {
     this.config = {
       endpoint: config.endpoint || "http://localhost:3000",
       ...config,
@@ -218,4 +218,4 @@ export class BhashaQA {
   }
 }
 
-export type { VerificationResult, BhashaQAConfig } from "./types";
+export type { VerificationResult, WordAIConfig } from "./types";

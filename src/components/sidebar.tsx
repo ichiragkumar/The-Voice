@@ -20,7 +20,7 @@ const navItems = [
   { href: "/demo", label: "Live Demo", icon: Zap },
   { href: "/runner", label: "Test Runner", icon: Play },
   { href: "/runs", label: "Test Runs", icon: Activity },
-  { href: "/setup", label: "Setup SDK", icon: Settings },
+  { href: "/developer", label: "Developer", icon: Settings },
   { href: "/docs", label: "Docs", icon: Book },
 ];
 
@@ -29,7 +29,7 @@ function NavContent({ pathname }: { pathname: string }) {
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-6 py-5 border-b border-border">
         <Shield className="h-6 w-6 text-emerald-500" />
-        <span className="text-lg font-semibold tracking-tight">BhashaQA</span>
+        <span className="text-lg font-semibold tracking-tight">Word AI</span>
       </div>
       <nav className="flex flex-col gap-1 p-3 flex-1">
         {navItems.map((item) => (
@@ -87,7 +87,7 @@ export function Sidebar() {
           </SheetContent>
         </Sheet>
         <Shield className="h-5 w-5 text-emerald-500" />
-        <span className="font-semibold">BhashaQA</span>
+        <span className="font-semibold">Word AI</span>
         <div className="ml-auto">
           <ThemeToggle />
         </div>

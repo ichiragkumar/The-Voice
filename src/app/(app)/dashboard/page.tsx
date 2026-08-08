@@ -1,6 +1,7 @@
 import { getDashboardStats } from "@/actions/audit-actions";
 import { AuditSummary } from "@/components/audit-summary";
 import { RootCauseChart } from "@/components/root-cause-chart";
+import { AIStatus } from "@/components/ai-status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/components/motion-wrapper";
@@ -8,15 +9,19 @@ import Link from "next/link";
 
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
+  const aiConfigured = !!process.env.ANTHROPIC_API_KEY;
 
   return (
     <div className="space-y-8">
       <FadeIn>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Overview of your voice agent verification results
-          </p>
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Overview of your voice agent verification results
+            </p>
+          </div>
+          <AIStatus configured={aiConfigured} />
         </div>
       </FadeIn>
 

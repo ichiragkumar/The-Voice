@@ -4,14 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { FadeIn } from "@/components/motion-wrapper";
 import { Terminal, Plug, Play, CheckCircle } from "lucide-react";
 
-const INSTALL_CODE = `npm install @bhashaqa/sdk`;
+const INSTALL_CODE = `npm install @wordai/sdk`;
 
-const SDK_CODE = `import { BhashaQA } from "@bhashaqa/sdk";
-import { ECOMMERCE_POLICY } from "@bhashaqa/sdk/policies";
+const SDK_CODE = `import { WordAI } from "@wordai/sdk";
+import { ECOMMERCE_POLICY } from "@wordai/sdk/policies";
 
-const bq = new BhashaQA({
-  apiKey: process.env.BHASHAQA_API_KEY,
-  endpoint: "https://your-bhashaqa.vercel.app",
+const bq = new WordAI({
+  apiKey: process.env.WORDAI_API_KEY,
+  endpoint: "https://your-wordai.vercel.app",
 });
 
 // After your voice agent handles a call:
@@ -35,12 +35,12 @@ bq.addPolicyPack(ECOMMERCE_POLICY);
 const result = await bq.verify();
 // result.passed → false if tool said success but order is still active`;
 
-const WEBHOOK_CODE = `// Send production calls to BhashaQA
-const res = await fetch("https://your-bhashaqa.vercel.app/api/ingest", {
+const WEBHOOK_CODE = `// Send production calls to Word AI
+const res = await fetch("https://your-wordai.vercel.app/api/ingest", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "x-api-key": process.env.BHASHAQA_API_KEY,
+    "x-api-key": process.env.WORDAI_API_KEY,
   },
   body: JSON.stringify({
     audit_name: "Production Monitoring",
@@ -67,7 +67,7 @@ export default function SetupPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Quick Setup</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Integrate BhashaQA into your voice agent in under 5 minutes
+            Integrate Word AI into your voice agent in under 5 minutes
           </p>
         </div>
       </FadeIn>
@@ -110,9 +110,9 @@ export default function SetupPage() {
             <div>
               <p className="font-semibold">What makes this different from Cekura</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Cekura checks tool-call events in transcripts. BhashaQA independently queries
+                Cekura checks tool-call events in transcripts. Word AI independently queries
                 your backend AFTER the call to verify the transaction actually happened correctly.
-                Tool said &ldquo;success&rdquo; but order is still active? BhashaQA catches it.
+                Tool said &ldquo;success&rdquo; but order is still active? Word AI catches it.
               </p>
             </div>
           </CardContent>

@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 const VALID_USER = "user1234";
 const VALID_PASS = "password";
-const SESSION_COOKIE = "bhashaqa_session";
+const SESSION_COOKIE = "wordai_session";
 
 export async function authenticate(username: string, password: string): Promise<boolean> {
   if (username === VALID_USER && password === VALID_PASS) {

@@ -16,7 +16,7 @@ var __spreadValues = (a, b) => {
 };
 
 // src/index.ts
-var BhashaQA = class {
+var WordAI = class {
   constructor(config = {}) {
     this.transcript = "";
     this.language = "hinglish";
@@ -187,5 +187,5 @@ var BhashaQA = class {
   }
 };
 export {
-  BhashaQA
+  WordAI
 };

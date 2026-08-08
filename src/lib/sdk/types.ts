@@ -65,7 +65,7 @@ export type VerificationResult = {
   };
 };
 
-export type BhashaQAConfig = {
+export type WordAIConfig = {
   apiKey?: string;
   endpoint?: string;
   auditId?: string;

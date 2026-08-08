@@ -1,4 +1,4 @@
-# BhashaQA — TODO Tracker
+# Word AI — TODO Tracker
 
 ## Phase 1–9: [ALL DONE] (see git history)
 

@@ -1,4 +1,4 @@
-name: BhashaQA Voice Agent Gate
+name: Word AI Voice Agent Gate
 
 on:
   pull_request:
@@ -19,7 +19,7 @@ on:
 
 jobs:
   bhashaqa-test:
-    name: Run BhashaQA Regression Tests
+    name: Run Word AI Regression Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -33,17 +33,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run BhashaQA audit
+      - name: Run Word AI audit
         env:
-          BHASHAQA_URL: ${{ secrets.BHASHAQA_URL }}
-          BHASHAQA_API_KEY: ${{ secrets.BHASHAQA_API_KEY }}
+          WORDAI_URL: ${{ secrets.WORDAI_URL }}
+          WORDAI_API_KEY: ${{ secrets.WORDAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           SUITE="${{ github.event.inputs.suite || 'ecommerce-hindi' }}"
           AUDIT_NAME="${{ github.event.inputs.audit_name || format('CI Gate — PR #{0}', github.event.pull_request.number) }}"
 
           # Create audit
-          AUDIT_RESPONSE=$(curl -s -X POST "${BHASHAQA_URL}/api/audits" \
+          AUDIT_RESPONSE=$(curl -s -X POST "${WORDAI_URL}/api/audits" \
             -H "Content-Type: application/json" \
             -d "{\"name\": \"${AUDIT_NAME}\"}")
 
@@ -51,7 +51,7 @@ jobs:
           echo "Created audit: $AUDIT_ID"
 
           # Process audit
-          PROCESS_RESPONSE=$(curl -s -X POST "${BHASHAQA_URL}/api/process" \
+          PROCESS_RESPONSE=$(curl -s -X POST "${WORDAI_URL}/api/process" \
             -H "Content-Type: application/json" \
             -d "{\"auditId\": \"${AUDIT_ID}\"}")
 
@@ -63,7 +63,7 @@ jobs:
           echo "::set-output name=total::$TOTAL"
 
           if [ "$FAILED" -gt "0" ]; then
-            echo "::error::BhashaQA detected $FAILED failures. Check ${BHASHAQA_URL}/audits/${AUDIT_ID}"
+            echo "::error::Word AI detected $FAILED failures. Check ${WORDAI_URL}/audits/${AUDIT_ID}"
             exit 1
           fi
 
@@ -76,5 +76,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `## BhashaQA Voice Agent Gate — FAILED\n\nPrompt changes introduced voice agent failures.\n\nCheck the [audit report](${process.env.BHASHAQA_URL}/audits/) for details.`
+              body: `## Word AI Voice Agent Gate — FAILED\n\nPrompt changes introduced voice agent failures.\n\nCheck the [audit report](${process.env.WORDAI_URL}/audits/) for details.`
             });

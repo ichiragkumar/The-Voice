@@ -12,12 +12,12 @@ const steps = [
   {
     num: "02",
     title: "Upload call data",
-    desc: "Upload transcripts, tool-call logs, and backend state. BhashaQA handles Hindi, Hinglish, and English — including code-switching mid-sentence.",
+    desc: "Upload transcripts, tool-call logs, and backend state. Word AI handles Hindi, Hinglish, and English — including code-switching mid-sentence.",
   },
   {
     num: "03",
     title: "Verify every layer",
-    desc: "BhashaQA extracts entities, normalizes Indian expressions (saade chaar → 4:30, parson → day after tomorrow), and compares against your backend.",
+    desc: "Word AI extracts entities, normalizes Indian expressions (saade chaar → 4:30, parson → day after tomorrow), and compares against your backend.",
   },
   {
     num: "04",
@@ -42,7 +42,7 @@ export function LandingSteps() {
           <h2 className="text-3xl sm:text-4xl font-bold">
             Plug in. Run. Ship with confidence.
           </h2>
-          <p className="text-white/40 mt-4 max-w-xl mx-auto">
+          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
             Connect your agent, upload calls, get verification results —
             fastest path from broken to production-ready.
           </p>
@@ -55,22 +55,21 @@ export function LandingSteps() {
               initial={{ opacity: 0, x: -30 }}
               animate={inView ? { opacity: 1, x: 0 } : {}}
               transition={{ duration: 0.6, delay: 0.2 + i * 0.15 }}
-              className="flex gap-6 py-8 border-b border-white/5 last:border-0 group"
+              className="flex gap-6 py-8 border-b border-border last:border-0 group"
             >
               <div className="flex-shrink-0">
-                <span className="text-2xl font-bold text-emerald-400/60 group-hover:text-emerald-400 transition-colors">
+                <span className="text-2xl font-bold text-emerald-500/60 group-hover:text-emerald-500 transition-colors">
                   {step.num}
                 </span>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold group-hover:text-emerald-400 transition-colors">
+                <h3 className="text-lg font-semibold group-hover:text-emerald-500 transition-colors">
                   {step.title}
                 </h3>
-                <p className="text-sm text-white/40 mt-2 leading-relaxed max-w-lg">
+                <p className="text-sm text-muted-foreground mt-2 leading-relaxed max-w-lg">
                   {step.desc}
                 </p>
               </div>
-              <div className="hidden lg:block w-px bg-gradient-to-b from-transparent via-emerald-400/20 to-transparent group-hover:via-emerald-400/40 transition-all" />
             </motion.div>
           ))}
         </div>

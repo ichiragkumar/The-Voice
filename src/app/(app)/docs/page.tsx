@@ -65,7 +65,7 @@ export default function DocsPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Documentation</h1>
             <p className="text-muted-foreground mt-2">
-              Everything you need to integrate BhashaQA into your voice agent pipeline.
+              Everything you need to integrate Word AI into your voice agent pipeline.
             </p>
           </div>
         </FadeIn>
@@ -78,9 +78,9 @@ export default function DocsPage() {
           <Card>
             <CardContent className="pt-6 space-y-4">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                BhashaQA is a <strong>transaction assurance layer</strong> for Indian-language
+                Word AI is a <strong>transaction assurance layer</strong> for Indian-language
                 voice agents. Unlike generic testing platforms that check if conversations look
-                correct, BhashaQA verifies that the caller&rsquo;s exact request became the correct
+                correct, Word AI verifies that the caller&rsquo;s exact request became the correct
                 business transaction in your backend.
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -88,7 +88,7 @@ export default function DocsPage() {
                   { label: "Speech Truth", desc: "What did the customer say?" },
                   { label: "Entity Truth", desc: "What amount/date/address did they mean?" },
                   { label: "Transaction Truth", desc: "What changed in the backend?" },
-                  { label: "Policy Truth", desc: "Was it compliant?" },
+                  { label: "Policy Truth", desc: "Did it follow configured rules?" },
                 ].map((layer) => (
                   <div key={layer.label} className="rounded-lg border border-border bg-muted/30 p-3">
                     <p className="text-xs font-medium text-emerald-400">{layer.label}</p>
@@ -106,12 +106,12 @@ export default function DocsPage() {
             <Play className="h-5 w-5 text-emerald-500" /> Quick Start
           </h2>
           <div className="space-y-3">
-            <CodeBlock language="bash" code={`npm install @bhashaqa/sdk`} />
-            <CodeBlock language="typescript" code={`import { BhashaQA } from "@bhashaqa/sdk";
+            <CodeBlock language="bash" code={`npm install @wordai/sdk`} />
+            <CodeBlock language="typescript" code={`import { WordAI } from "@wordai/sdk";
 
-const bq = new BhashaQA({
+const bq = new WordAI({
   apiKey: "your-api-key",
-  endpoint: "https://your-bhashaqa.vercel.app",
+  endpoint: "https://your-wordai.vercel.app",
 });
 
 // 1. Capture the conversation
@@ -228,7 +228,7 @@ console.log(result.passed); // false if tool said success but refund didn't happ
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground mb-4">
-                BhashaQA normalizes Indian expressions that generic platforms miss:
+                Word AI normalizes Indian expressions that generic platforms miss:
               </p>
               <div className="space-y-3">
                 {[
@@ -289,8 +289,8 @@ console.log(result.passed); // false if tool said success but refund didn't happ
               </CardContent>
             </Card>
           ))}
-          <CodeBlock language="typescript" code={`import { ECOMMERCE_POLICY } from "@bhashaqa/sdk/policies";
-import { COLLECTIONS_POLICY } from "@bhashaqa/sdk/policies";
+          <CodeBlock language="typescript" code={`import { ECOMMERCE_POLICY } from "@wordai/sdk/policies";
+import { COLLECTIONS_POLICY } from "@wordai/sdk/policies";
 
 bq.addPolicyPack(ECOMMERCE_POLICY);
 bq.addPolicyPack(COLLECTIONS_POLICY);`} />
@@ -304,7 +304,7 @@ bq.addPolicyPack(COLLECTIONS_POLICY);`} />
           <Card>
             <CardContent className="pt-6">
               <p className="text-sm text-muted-foreground mb-4">
-                BhashaQA normalizes tool-call formats from any vendor:
+                Word AI normalizes tool-call formats from any vendor:
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {["Bolna", "Vapi", "Retell AI", "LiveKit", "Pipecat", "Sarvam AI", "Custom"].map((v) => (
@@ -347,14 +347,14 @@ bq.addPolicyPack(COLLECTIONS_POLICY);`} />
             <Terminal className="h-5 w-5 text-emerald-500" /> CLI & CI/CD
           </h2>
           <CodeBlock language="bash" code={`# Run from terminal
-./scripts/bhashaqa-test.sh --suite ecommerce-hindi --url http://localhost:3000
+./scripts/wordai-test.sh --suite ecommerce-hindi --url http://localhost:3000
 
 # GitHub Actions — add to your workflow
-- name: BhashaQA Gate
+- name: Word AI Gate
   env:
-    BHASHAQA_URL: \${{ secrets.BHASHAQA_URL }}
-    BHASHAQA_API_KEY: \${{ secrets.BHASHAQA_API_KEY }}
-  run: ./scripts/bhashaqa-test.sh --suite ecommerce-hindi`} />
+    WORDAI_URL: \${{ secrets.WORDAI_URL }}
+    WORDAI_API_KEY: \${{ secrets.WORDAI_API_KEY }}
+  run: ./scripts/wordai-test.sh --suite ecommerce-hindi`} />
         </section>
 
         {/* Final State */}
@@ -364,10 +364,10 @@ bq.addPolicyPack(COLLECTIONS_POLICY);`} />
           </h2>
           <Card className="border-emerald-500/20 bg-emerald-500/5">
             <CardContent className="pt-6 space-y-4">
-              <p className="text-sm font-medium">This is what makes BhashaQA different.</p>
+              <p className="text-sm font-medium">This is what makes Word AI different.</p>
               <p className="text-sm text-muted-foreground">
                 Cekura and other platforms verify tool calls by reading function-call events
-                in the transcript. BhashaQA independently queries your backend AFTER the call
+                in the transcript. Word AI independently queries your backend AFTER the call
                 to verify the transaction actually completed correctly.
               </p>
               <CodeBlock language="typescript" code={`// The tool call said "success" — but did it really happen?
@@ -380,7 +380,7 @@ bq.assertFinalState(async () => {
   };
 });
 
-// BhashaQA catches:
+// Word AI catches:
 // - Tool returned success but order is still active
 // - Refund amount is wrong (full order instead of single item)
 // - Appointment date in calendar doesn't match what was confirmed
@@ -391,7 +391,7 @@ bq.assertFinalState(async () => {
 
         <Separator />
         <p className="text-xs text-muted-foreground text-center pb-8">
-          BhashaQA — Voice Agent Truth Layer &middot; Built with Next.js, Claude, and Maya
+          Word AI — Voice Agent Truth Layer &middot; Built with Next.js, Claude, and Maya
         </p>
       </div>
     </div>

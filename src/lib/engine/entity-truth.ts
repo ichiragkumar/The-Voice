@@ -167,8 +167,10 @@ export function normalizeHindiDate(
     if (dayMatch) return getNextWeekday(ref, dayMatch[1]);
   }
   if (/is mahine ki aakhri tareekh/.test(lower)) {
-    const lastDay = new Date(ref.getFullYear(), ref.getMonth() + 1, 0);
-    return formatDate(lastDay);
+    const year = ref.getUTCFullYear();
+    const month = ref.getUTCMonth();
+    const lastDay = new Date(Date.UTC(year, month + 1, 0));
+    return lastDay.toISOString().split("T")[0];
   }
 
   return null;
@@ -202,7 +204,7 @@ export function fuzzyDateMatch(expected: string, actual: string): boolean {
   try {
     const e = new Date(expected);
     const a = new Date(actual);
-    return Math.abs(e.getTime() - a.getTime()) < 86400000;
+    return Math.abs(e.getTime() - a.getTime()) <= 86400000;
   } catch {
     return false;
   }

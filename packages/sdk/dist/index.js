@@ -34,10 +34,10 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
-  BhashaQA: () => BhashaQA
+  WordAI: () => WordAI
 });
 module.exports = __toCommonJS(index_exports);
-var BhashaQA = class {
+var WordAI = class {
   constructor(config = {}) {
     this.transcript = "";
     this.language = "hinglish";
@@ -209,5 +209,5 @@ var BhashaQA = class {
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  BhashaQA
+  WordAI
 });

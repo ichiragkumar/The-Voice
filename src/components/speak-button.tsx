@@ -76,7 +76,7 @@ export function SpeakButton({ text, voice, language, size = "sm", label }: Props
       {state === "loading" && <Loader2 className="h-3 w-3 animate-spin" />}
       {state === "playing" && <Square className="h-3 w-3 fill-current" />}
       {state === "idle" && <Volume2 className="h-3 w-3" />}
-      {label || (state === "playing" ? "Stop" : "Listen")}
+      {label === "" ? null : label ?? (state === "playing" ? "Stop" : "Listen")}
     </Button>
   );
 }

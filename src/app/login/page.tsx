@@ -57,7 +57,7 @@ export default function LoginPage() {
           </motion.div>
           <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
           <p className="text-sm text-muted-foreground">
-            Sign in to BhashaQA
+            Sign in to Word AI
           </p>
         </div>
 
@@ -128,6 +128,9 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-muted-foreground">
           Voice Agent Truth Layer
+        </p>
+        <p className="text-center text-[10px] text-muted-foreground/60">
+          Demo: user1234 / password
         </p>
       </motion.div>
     </div>

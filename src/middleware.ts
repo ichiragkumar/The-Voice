@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = request.cookies.get("bhashaqa_session");
+  const session = request.cookies.get("wordai_session");
   if (session?.value !== "authenticated") {
     return NextResponse.redirect(new URL("/login", request.url));
   }

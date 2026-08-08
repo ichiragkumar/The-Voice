@@ -1,9 +1,9 @@
 @AGENTS.md
 
-# BhashaQA — Voice Agent Truth Layer
+# Word AI — Voice Agent Truth Layer
 
 ## What this is
-BhashaQA verifies business transactions performed by Indian-language voice agents.
+Word AI verifies business transactions performed by Indian-language voice agents.
 Not "tests conversations" — certifies that the customer's exact Hindi/Hinglish request became the correct transaction in the backend.
 
 ## Tech Stack

@@ -1,6 +1,6 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod/v4";
+import { getModel, isAIConfigured } from "../ai";
 import { getExtractionPrompt } from "../prompts/extraction";
 
 const ExtractedEntitySchema = z.object({
@@ -19,8 +19,12 @@ export async function extractEntities(
   transcript: string,
   language: string
 ): Promise<ExtractedEntity[]> {
+  if (!isAIConfigured()) {
+    throw new Error("ANTHROPIC_API_KEY not set — add it to .env to enable Claude-powered extraction");
+  }
+
   const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: getModel(),
     schema: ExtractionResultSchema,
     prompt: getExtractionPrompt(transcript, language),
   });

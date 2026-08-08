@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
   const apiKey = request.headers.get("x-api-key");
-  if (apiKey !== process.env.BHASHAQA_API_KEY && apiKey !== "demo-key") {
+  if (apiKey !== process.env.WORDAI_API_KEY && apiKey !== "demo-key") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -94,7 +94,7 @@ export async function POST(request: Request) {
 
 export async function GET() {
   return NextResponse.json({
-    service: "BhashaQA Ingestion API",
+    service: "Word AI Ingestion API",
     version: "1.0",
     endpoints: {
       "POST /api/ingest": {

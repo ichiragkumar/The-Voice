@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 model Audit {
@@ -110,4 +110,14 @@ model PolicyCheck {
   createdAt   DateTime @default(now())
   testRun     TestRun? @relation(fields: [testRunId], references: [id], onDelete: Cascade)
   call        Call?    @relation(fields: [callId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  keyHash     String
+  keyPrefix   String
+  lastUsed    DateTime?
+  status      String    @default("active")
+  createdAt   DateTime  @default(now())
 }

@@ -1,6 +1,6 @@
-import { anthropic } from "@ai-sdk/anthropic";
 import { generateObject } from "ai";
 import { z } from "zod/v4";
+import { getModel, isAIConfigured } from "../ai";
 import { getNormalizationPrompt } from "../prompts/normalization";
 import type { ExtractedEntity } from "./extract";
 
@@ -21,10 +21,14 @@ export async function normalizeEntities(
   entities: ExtractedEntity[],
   callDate: Date
 ): Promise<NormalizedEntity[]> {
+  if (!isAIConfigured()) {
+    throw new Error("ANTHROPIC_API_KEY not set — add it to .env to enable Claude-powered normalization");
+  }
+
   const dateStr = callDate.toISOString().split("T")[0];
 
   const { object } = await generateObject({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: getModel(),
     schema: NormalizationResultSchema,
     prompt: getNormalizationPrompt(
       entities.map((e) => ({ type: e.type, rawValue: e.rawValue, context: e.context })),

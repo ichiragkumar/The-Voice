@@ -52,7 +52,7 @@ export function LandingFeatures() {
     <section
       id="features"
       ref={ref}
-      className="py-24 px-6 bg-white/[0.02] border-y border-white/5"
+      className="py-24 px-6 bg-muted/30 border-y border-border"
     >
       <div className="max-w-5xl mx-auto">
         <motion.div
@@ -64,9 +64,9 @@ export function LandingFeatures() {
           <h2 className="text-3xl sm:text-4xl font-bold">
             Built for Indian voice agents
           </h2>
-          <p className="text-white/40 mt-4 max-w-xl mx-auto">
+          <p className="text-muted-foreground mt-4 max-w-xl mx-auto">
             Generic platforms tell you if the conversation looked correct.
-            BhashaQA certifies that the customer&rsquo;s exact request became
+            Word AI verifies that the customer&rsquo;s exact request became
             the correct transaction.
           </p>
         </motion.div>
@@ -78,13 +78,13 @@ export function LandingFeatures() {
               initial={{ opacity: 0, y: 30 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.1 + i * 0.08 }}
-              className="group rounded-xl border border-white/5 bg-white/[0.02] p-6 hover:border-emerald-400/20 hover:bg-white/[0.04] transition-all"
+              className="group rounded-xl border border-border bg-card p-6 hover:border-emerald-500/30 hover:shadow-sm transition-all"
             >
-              <div className="h-10 w-10 rounded-lg bg-emerald-400/10 flex items-center justify-center mb-4 group-hover:bg-emerald-400/20 transition-colors">
-                <feature.icon className="h-5 w-5 text-emerald-400" />
+              <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+                <feature.icon className="h-5 w-5 text-emerald-500" />
               </div>
               <h3 className="font-semibold mb-2">{feature.title}</h3>
-              <p className="text-sm text-white/40 leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {feature.desc}
               </p>
             </motion.div>
