@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { logoutAction } from "@/actions/auth-actions";
 
 const navItems = [
-  { href: "/chat", label: "AI Chat", icon: MessageSquare },
+  { href: "/chat", label: "Chat", icon: MessageSquare },
   { href: "/orders", label: "My Orders", icon: ShoppingCart },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/audits", label: "Audits", icon: FileSearch },
@@ -26,7 +26,7 @@ const navItems = [
   { href: "/docs", label: "Docs", icon: Book },
 ];
 
-function NavContent({ pathname }: { pathname: string }) {
+function NavContent({ pathname, userName }: { pathname: string; userName: string }) {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-6 py-5 border-b border-border">
@@ -59,9 +59,14 @@ function NavContent({ pathname }: { pathname: string }) {
             </Button>
           </form>
         </div>
-        <p className="text-xs text-muted-foreground px-1">
-          Voice Agent Truth Layer
-        </p>
+        {userName && (
+          <div className="flex items-center gap-2 px-1">
+            <div className="h-6 w-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-[10px] font-bold text-emerald-400">
+              {userName.charAt(0).toUpperCase()}
+            </div>
+            <span className="text-xs font-medium truncate">{userName}</span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -70,11 +75,24 @@ function NavContent({ pathname }: { pathname: string }) {
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    fetch("/api/orders").then((r) => { if (r.ok) return r.json(); throw ""; }).then(() => {
+      return fetch("/api/chat/history");
+    }).then((r) => r.json()).then((msgs: any[]) => {
+      const welcome = msgs.find((m: any) => m.role === "system" && m.text.includes("Welcome"));
+      if (welcome) {
+        const name = welcome.text.match(/Welcome (\w+)/)?.[1];
+        if (name) setUserName(name);
+      }
+    }).catch(() => {});
+  }, []);
 
   return (
     <>
       <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-64 lg:flex-col bg-card border-r border-border">
-        <NavContent pathname={pathname} />
+        <NavContent pathname={pathname} userName={userName} />
       </aside>
 
       <div className="fixed top-0 left-0 right-0 z-40 flex items-center gap-2 border-b border-border bg-background px-4 py-3 lg:hidden">
@@ -85,7 +103,7 @@ export function Sidebar() {
             <Menu className="h-5 w-5" />
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
-            <NavContent pathname={pathname} />
+            <NavContent pathname={pathname} userName={userName} />
           </SheetContent>
         </Sheet>
         <Shield className="h-5 w-5 text-emerald-500" />

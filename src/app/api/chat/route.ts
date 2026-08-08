@@ -186,19 +186,23 @@ function inferReply(message: string, orders: any[]) {
     return nd ? `${nd.orderId} (${nd.item}) cancel kar diya hai.` : "Koi cancellable order nahi hai. Sirf 'not dispatched' orders cancel ho sakte hain.";
   }
   if (lower.includes("track") || lower.includes("where") || lower.includes("kahan") || lower.includes("package")) {
-    const shipped = orders.find((o) => o.status === "shipped");
+    const shipped = findOrder(message, orders, "shipped");
     return shipped ? `${shipped.orderId} (${shipped.item}) shipped hai. Tracking: ${shipped.tracking}. 2-3 din mein aa jayega.` : "Koi shipped order nahi hai abhi.";
   }
-  if (lower.includes("place") || lower.includes("new order") || lower.includes("buy") || lower.includes("order kar")) {
-    return "Naya order place kar diya hai! Aap orders page par dekh sakte hain.";
+  if (lower.includes("place") || lower.includes("new order") || lower.includes("buy") || lower.includes("order kar") ||
+      (lower.includes("order") && (lower.includes("please") || lower.includes("can you") || lower.includes("want")))) {
+    const itemMatch = lower.match(/(?:order|buy|place|get)\s+(?:a\s+|an\s+|me\s+(?:a\s+|an\s+)?)?(.+?)(?:\s+for|\s+please|\s*$)/);
+    const itemName = itemMatch?.[1]?.trim() || "item";
+    return `${itemName} ka naya order place kar diya hai! Order sidebar mein dekh sakte hain.`;
   }
   if (lower.includes("refund") || lower.includes("paisa wapas") || lower.includes("money back")) {
-    const cancelled = orders.find((o) => o.status === "cancelled" || o.status === "delivered");
-    return cancelled ? `${cancelled.orderId} ka ₹${cancelled.amount} refund process kar diya.` : "Refund ke liye pehle order cancel karein ya delivered order select karein.";
+    const target = findOrder(message, orders);
+    const eligible = target && (target.status === "cancelled" || target.status === "delivered") ? target : orders.find((o: any) => o.status === "cancelled" || o.status === "delivered");
+    return eligible ? `${eligible.orderId} (${eligible.item}) ka ₹${eligible.amount} refund process kar diya.` : "Refund ke liye pehle order cancel karein ya delivered order select karein.";
   }
   if (lower.includes("address") || lower.includes("pata") || lower.includes("change address")) {
-    const active = orders.find((o) => o.status === "not_dispatched" || o.status === "shipped");
-    return active ? `${active.orderId} ka address kaunsa set karein? Naya address bataiye.` : "Koi active order nahi hai address change karne ke liye.";
+    const active = findOrder(message, orders, "not_dispatched") || findOrder(message, orders, "shipped");
+    return active ? `${active.orderId} (${active.item}) ka address update kar diya.` : "Koi active order nahi hai address change karne ke liye.";
   }
   if (lower.includes("status") || lower.includes("orders") || lower.includes("show") || lower.includes("list") || lower.includes("dikhao")) {
     return `Aapke ${orders.length} orders hain:\n${orders.map((o) => `• ${o.orderId}: ${o.item} ₹${o.amount} [${o.status}]`).join("\n")}`;
@@ -212,26 +216,33 @@ function inferReply(message: string, orders: any[]) {
 function inferTool(message: string, orders: any[]) {
   const lower = message.toLowerCase();
   if (lower.includes("cancel")) {
-    const nd = orders.find((o) => o.status === "not_dispatched");
+    const nd = findOrder(message, orders, "not_dispatched");
     return nd ? { name: "cancel_order", args: { order_id: nd.orderId } } : { name: "no_action", args: {} };
   }
   if (lower.includes("track") || lower.includes("where") || lower.includes("kahan") || lower.includes("package")) {
-    const shipped = orders.find((o) => o.status === "shipped");
+    const shipped = findOrder(message, orders, "shipped");
     return shipped ? { name: "track_order", args: { order_id: shipped.orderId } } : { name: "no_action", args: {} };
   }
-  if (lower.includes("place") || lower.includes("new order") || lower.includes("buy") || lower.includes("order kar")) {
-    return { name: "place_order", args: { item: "Phone Case", method: "upi" } };
+  if (lower.includes("place") || lower.includes("new order") || lower.includes("buy") || lower.includes("order kar") ||
+      (lower.includes("order") && (lower.includes("please") || lower.includes("can you") || lower.includes("want")))) {
+    const itemMatch = lower.match(/(?:order|buy|place|get)\s+(?:a\s+|an\s+|me\s+(?:a\s+|an\s+)?)?(.+?)(?:\s+for|\s+please|\s*$)/);
+    const item = itemMatch?.[1]?.trim() || "Phone Case";
+    return { name: "place_order", args: { item, method: "upi" } };
   }
   if (lower.includes("refund") || lower.includes("paisa") || lower.includes("money back")) {
-    const cancelled = orders.find((o) => o.status === "cancelled" || o.status === "delivered");
-    return cancelled ? { name: "process_refund", args: { order_id: cancelled.orderId, method: "upi" } } : { name: "no_action", args: {} };
+    const target = findOrder(message, orders);
+    const eligible = target && (target.status === "cancelled" || target.status === "delivered") ? target : orders.find((o: any) => o.status === "cancelled" || o.status === "delivered");
+    return eligible ? { name: "process_refund", args: { order_id: eligible.orderId, method: "upi" } } : { name: "no_action", args: {} };
   }
   if (lower.includes("address") || lower.includes("pata")) {
-    const active = orders.find((o) => o.status === "not_dispatched" || o.status === "shipped");
-    return active ? { name: "change_address", args: { order_id: active.orderId, new_address: "456 Work Plaza, Mumbai" } } : { name: "no_action", args: {} };
+    const active = findOrder(message, orders, "not_dispatched") || findOrder(message, orders, "shipped");
+    const addrMatch = lower.match(/(?:to|change.*to)\s+(.+)/);
+    const newAddr = addrMatch?.[1]?.trim() || "456 Work Plaza, Mumbai";
+    return active ? { name: "change_address", args: { order_id: active.orderId, new_address: newAddr } } : { name: "no_action", args: {} };
   }
   if (lower.includes("status") || lower.includes("orders") || lower.includes("show") || lower.includes("list") || lower.includes("dikhao")) {
-    return orders[0] ? { name: "check_status", args: { order_id: orders[0].orderId } } : { name: "no_action", args: {} };
+    const target = findOrder(message, orders);
+    return target ? { name: "check_status", args: { order_id: target.orderId } } : { name: "no_action", args: {} };
   }
   return { name: "no_action", args: {} };
 }
