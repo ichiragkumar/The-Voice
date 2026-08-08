@@ -1,0 +1,24 @@
+{
+  "name": "@wordai/sdk",
+  "version": "0.1.0",
+  "description": "Transaction-integrity testing SDK for Hindi & Hinglish voice agents",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["bhashaqa", "voice-agent", "testing", "hindi", "hinglish", "india", "transaction-integrity"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bhashaqa/sdk"
+  },
+  "peerDependencies": {},
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
