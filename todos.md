@@ -1,78 +1,86 @@
 # BhashaQA — TODO Tracker
 
-## Phase 1: Foundation [DONE]
-- [x] Scaffold Next.js 15 + TypeScript + Tailwind + shadcn/ui
-- [x] Prisma schema (Audit, Call, Entity, ToolCall, Comparison + reviewStatus)
-- [x] Seed data (6 audits, 35 calls, Hindi/Hinglish transcripts)
-- [x] Prisma client singleton with libsql adapter
+## Phase 1–9: [ALL DONE] (see git history)
 
-## Phase 2: Core Engine [DONE]
-- [x] Entity extraction prompts + Claude integration
-- [x] Hindi/Hinglish normalization prompts
-- [x] Root cause classification prompts
-- [x] Comparison engine (expected vs actual)
-- [x] Pipeline orchestrator (extract → normalize → compare → classify)
+## Phase 10: Differentiation Build [DONE]
 
-## Phase 3: API Layer [DONE]
-- [x] Server actions (audit CRUD, upload, process, dashboard stats)
-- [x] API routes (/api/audits, /api/process, /api/ingest)
-- [x] File upload handling
-- [x] Production ingestion endpoint with API key auth
+### Agent 1: Final-State Assertion SDK [DONE]
+- [x] SDK types (`src/lib/sdk/types.ts`)
+- [x] SDK class with captureTranscript, traceTool, assertEntity, assertFinalState, assertPolicy, verify (`src/lib/sdk/index.ts`)
+- [x] SDK verification API endpoint (`/api/sdk/verify`)
 
-## Phase 4: UI — All Pages [DONE]
-- [x] Sidebar navigation (7 items + theme toggle + logout)
-- [x] Landing page — animated sections (hero, stats, steps, features, CTA)
-- [x] Login page with motion animations
-- [x] Dashboard with staggered fade-in animations
-- [x] Audit list page
-- [x] New audit page (multi-step upload form)
-- [x] Audit detail page (summary, call list, analysis tabs, process button)
-- [x] Call detail page (5-layer comparison, failure cards, entity table)
-- [x] Regression comparison page (version A vs B, root cause shift)
-- [x] Human review queue page (confirm/dismiss/override with notes)
-- [x] Industry packs page (7 packs with verification details)
+### Agent 2: India Entity Truth Engine [DONE]
+- [x] Hindi number normalizer (ek → 1, dedh lakh → 150000, chaudah sau ninyanve → 1499)
+- [x] Hindi time normalizer (saade chaar → 04:30, paune paanch → 04:45, sawa teen → 03:15)
+- [x] Hindi date normalizer (aaj, kal, parson, uske agle din, agla wala Friday, aakhri tareekh)
+- [x] Spoken digit normalizer (one four double nine → 1499)
+- [x] Fuzzy matching (amount tolerance, date proximity)
 
-## Phase 5: Polish & Differentiation [DONE]
-- [x] Authentication (cookie-based, middleware redirect)
-- [x] Dark/Light theme toggle (next-themes)
-- [x] Route groups: (app) for protected, public for landing/login
-- [x] Animated layer comparison (staggered reveal + break indicator)
-- [x] Motion library (motion/framer-motion) for page transitions
-- [x] FadeIn/Stagger wrapper components for reuse
-- [x] Landing page nav bar with backdrop blur
+### Agent 3: Policy Assertion Engine [DONE]
+- [x] Policy engine (`src/lib/engine/policy.ts`)
+- [x] RBI Collections policy pack (4 rules: identity verification, no threats, PTP capture, hardship escalation)
+- [x] E-commerce policy pack (4 rules: order ID verification, refund limits, refund method, confirmation truthfulness)
+- [x] Insurance IRDAI policy pack (3 rules: policy verification, API error honesty, nominee change requirements)
 
-## Phase 6: Multi-vendor & CI/CD [DONE]
-- [x] Vendor configs (Bolna, Vapi, Retell, LiveKit, Pipecat, Sarvam, Custom)
-- [x] Tool call normalizer per vendor format
-- [x] Transcript normalizer per vendor format
-- [x] GitHub Actions workflow (bhashaqa-gate.yml)
-- [x] CLI test runner script (scripts/bhashaqa-test.sh)
+### Agent 4: Browser Test Runner [DONE]
+- [x] Scenario types and builder (`src/lib/runner/scenarios.ts`)
+- [x] Test run API endpoint (`/api/run`)
+- [x] Runner page (`/runner`) — pick benchmark pack, run individual or all scenarios, see results with Maya audio
 
-## Phase 7: Industry Packs [DONE]
-- [x] E-commerce cancellation & refund (seed data + pack)
-- [x] Appointment booking & rescheduling (seed data + pack)
-- [x] Collections promise-to-pay (seed data + pack)
-- [x] Address change (pack definition)
-- [x] Insurance policy servicing (seed data + pack)
-- [x] Banking & loan servicing (coming soon)
-- [x] Telecom plan & recharge (coming soon)
+### Agent 5: Indian Caller Benchmarks [DONE]
+- [x] Hindi E-commerce: 10 scenarios (spoken order IDs, partial cancel, UPI refund, dedh hazaar, flat 3B, angry caller)
+- [x] Hindi Appointments: 5 scenarios (relative dates, saade/paune times, multi-name, false confirmation)
+- [x] Hindi Collections: 5 scenarios (teen vs tera, salary-relative PTP, dedh lakh, dispute, simple PTP)
+- [x] Benchmark registry (`src/lib/benchmarks/index.ts`)
 
-## Phase 8: Skills [DONE]
-- [x] frontend-design skill (anthropics/skills)
-- [x] shadcn skill (shadcn/ui)
-- [x] prisma skills (prisma/skills)
+### Agent 6: SDK Setup Page [DONE]
+- [x] Interactive setup wizard (`/setup`) with copyable code blocks
+- [x] SDK install snippet, instrumentation example, webhook example
+- [x] Vendor badges (Bolna, Vapi, Retell, LiveKit, Pipecat, Sarvam, Custom)
+- [x] "What makes this different" section
 
-## Phase 9: Maya TTS Integration [DONE]
-- [x] Maya API key configured in .env
-- [x] Maya TTS library (src/lib/maya-tts.ts) — HTTP synthesis + PCM→WAV conversion
-- [x] Language auto-detection (Hindi, Telugu, Bengali, etc.)
-- [x] TTS API route (POST /api/tts) — proxy to Maya with WAV response
-- [x] SpeakButton component — listen/stop with loading state
-- [x] Call detail page — "Listen to call" button on transcript
-- [x] Entity table — speak button on each raw Hindi/Hinglish value
-- [x] Live Demo page (/demo) — type custom text, select voice, hear sample phrases
-- [x] beui MCP server configured in .claude/settings.json
-- [x] Font upgraded to Inter + JetBrains Mono
-- [x] Login auto-fills credentials (user1234/password)
+### Agent 7: Test Run Results [DONE]
+- [x] Runs list page (`/runs`) with status badges and policy violation counts
+- [x] Run detail page (`/runs/[id]`) with customer speech, tool call JSON, final state, policy check results
 
-## NOTHING PENDING — ALL PHASES COMPLETE
+### Agent 8: Schema + Seed [DONE]
+- [x] TestRun model (id, auditId, scenarioName, scenarioPack, status, checks, transcript, toolCalls, finalState)
+- [x] PolicyCheck model (id, testRunId, callId, policyPack, rule, passed, evidence, severity)
+- [x] Relations: Audit → TestRun[], Call → PolicyCheck[], TestRun → PolicyCheck[]
+
+### Agent 9: Dashboard + Sidebar [DONE]
+- [x] Sidebar updated: 10 nav items (Dashboard, Audits, New Audit, Regression, Review, Packs, Demo, Runner, Runs, Setup)
+- [x] Dashboard with FadeIn animations
+
+### Agent 10: Landing Page [DONE]
+- [x] Hero: "Did the backend actually do it?" with differentiated messaging
+- [x] Features: Final-State SDK, Entity Truth, Policy Packs, Benchmarks
+- [x] Steps: "Plug in. Run. Ship with confidence."
+
+## ALL 22 ROUTES BUILDING CLEAN
+
+```
+/              — Landing page (cinematic, animated)
+/login         — Auth (user1234/password, pre-filled)
+/dashboard     — Stats, charts, recent audits
+/audits        — Audit list
+/audits/new    — Multi-step upload
+/audits/[id]   — Audit detail + process button
+/calls/[id]    — 5-layer comparison + Maya TTS
+/regression    — Version A vs B
+/review        — Human review queue
+/packs         — 7 industry packs
+/demo          — Maya TTS live demo
+/runner        — Run benchmark scenarios
+/runs          — Test run history
+/runs/[id]     — Run detail with policy checks
+/setup         — SDK installation wizard
+/api/audits    — REST API
+/api/process   — Trigger analysis
+/api/ingest    — Production ingestion
+/api/tts       — Maya TTS proxy
+/api/run       — Execute test runs
+/api/sdk/verify — SDK result endpoint
+```
+
+## NOTHING PENDING — ALL 10 PHASES COMPLETE

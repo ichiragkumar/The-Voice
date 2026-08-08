@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut, GitCompare, ClipboardCheck, Package, Zap } from "lucide-react";
+import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut, GitCompare, ClipboardCheck, Package, Zap, Play, Activity, Settings, Book } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -18,6 +18,10 @@ const navItems = [
   { href: "/review", label: "Review Queue", icon: ClipboardCheck },
   { href: "/packs", label: "Industry Packs", icon: Package },
   { href: "/demo", label: "Live Demo", icon: Zap },
+  { href: "/runner", label: "Test Runner", icon: Play },
+  { href: "/runs", label: "Test Runs", icon: Activity },
+  { href: "/setup", label: "Setup SDK", icon: Settings },
+  { href: "/docs", label: "Docs", icon: Book },
 ];
 
 function NavContent({ pathname }: { pathname: string }) {

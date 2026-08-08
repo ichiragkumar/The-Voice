@@ -30,18 +30,21 @@ export function LandingHero() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            Certify every{" "}
+            Did the backend{" "}
             <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-              voice transaction
+              actually do it
             </span>
+            ?
           </h1>
 
           <p className="text-base sm:text-lg text-white/50 max-w-2xl mx-auto leading-relaxed">
-            Your voice agent sounds perfect. But did it book the right date?
-            Refund the right amount? Store the correct address? BhashaQA
-            verifies the{" "}
-            <span className="text-white/80">complete business outcome</span> —
-            not just the conversation.
+            Generic platforms check if the conversation looked correct.
+            BhashaQA certifies that the Indian caller&rsquo;s exact amount, date,
+            address or request became the{" "}
+            <span className="text-white/80">
+              correct authoritative business transaction
+            </span>
+            .
           </p>
         </motion.div>
 

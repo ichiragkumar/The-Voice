@@ -26,6 +26,12 @@ export function LandingNav() {
           Features
         </a>
         <Link
+          href="/docs"
+          className="text-xs text-white/50 hover:text-white transition-colors tracking-wide uppercase hidden sm:block"
+        >
+          Docs
+        </Link>
+        <Link
           href="/login"
           className="text-xs bg-white text-black px-4 py-2 rounded-full font-medium hover:bg-white/90 transition-colors"
         >
