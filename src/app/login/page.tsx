@@ -22,7 +22,29 @@ export default function LoginPage() {
     setError("");
 
     const formData = new FormData(e.currentTarget);
+    const username = formData.get("username") as string;
+    const password = formData.get("password") as string;
 
+    // Try new auth API first
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.href = "/chat";
+        return;
+      }
+      if (data.error) {
+        setError(data.error);
+        setLoading(false);
+        return;
+      }
+    } catch {}
+
+    // Fallback to old auth
     try {
       const result = await loginAction(formData);
       if (result?.error) {
@@ -127,10 +149,8 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Voice Agent Truth Layer
-        </p>
-        <p className="text-center text-[10px] text-muted-foreground/60">
-          Demo: user1234 / password
+          Don&rsquo;t have an account?{" "}
+          <a href="/signup" className="text-emerald-400 hover:underline">Create one</a>
         </p>
       </motion.div>
     </div>

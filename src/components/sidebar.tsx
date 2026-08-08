@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut, GitCompare, ClipboardCheck, Package, Zap, Play, Activity, Settings, Book } from "lucide-react";
+import { LayoutDashboard, FileSearch, Plus, Shield, Menu, LogOut, GitCompare, ClipboardCheck, Package, Zap, Play, Activity, Settings, Book, MessageSquare, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,6 +11,8 @@ import { useState } from "react";
 import { logoutAction } from "@/actions/auth-actions";
 
 const navItems = [
+  { href: "/chat", label: "AI Chat", icon: MessageSquare },
+  { href: "/orders", label: "My Orders", icon: ShoppingCart },
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/audits", label: "Audits", icon: FileSearch },
   { href: "/audits/new", label: "New Audit", icon: Plus },

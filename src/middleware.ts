@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login"];
+const PUBLIC_PATHS = ["/", "/login", "/signup"];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -16,7 +16,7 @@ export function middleware(request: NextRequest) {
   }
 
   const session = request.cookies.get("wordai_session");
-  if (session?.value !== "authenticated") {
+  if (!session?.value) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
