@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "WordAI — Voice Agent Truth Layer"
+description = "WordAI is a voice agent quality assurance platform that verifies business transactions performed by Indian-language voice agents. It lets teams upload call recordings, automatically extract and compare entities, run regression tests, and review AI-generated audits — all in one dashboard."
+version = "1.0.0"
+id = "artifacts/wordai"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25800
+
+[services.development]
+run = "pnpm --filter @workspace/wordai run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wordai", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/wordai/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25800"
+BASE_PATH = "/"
